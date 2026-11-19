@@ -1,0 +1,6 @@
+.venv/
+site/
+__pycache__/
+*.pyc
+docs/console.md.bak
+docs/fix_images.py
