@@ -3,6 +3,32 @@ title: KeenPG Console
 description: A simple, step-by-step guide to every part of the KeenPG console.
 ---
 
+<style>
+.md-typeset table:not([class]) {
+  display: table;
+  width: 100%;
+  border: 1px solid var(--md-default-fg-color--lighter);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.md-typeset table:not([class]) th {
+  background-color: var(--md-default-fg-color--lightest);
+  border-bottom: 2px solid var(--md-default-fg-color--lighter);
+}
+.md-typeset table:not([class]) td {
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+.md-typeset table:not([class]) th:not(:last-child),
+.md-typeset table:not([class]) td:not(:last-child) {
+  border-right: 1px solid var(--md-default-fg-color--lightest);
+}
+.md-typeset table:not([class]) tbody tr:nth-child(even) {
+  background-color: var(--md-code-bg-color);
+}
+</style>
+
 # KeenPG Console
 
 The **KeenPG console** is a web page for running PostgreSQL on Kubernetes and OpenShift. From your browser you can create databases, connect applications, take backups and restore them, run SQL on the primary or on a replica, and watch every database on Grafana dashboards. You never need to write YAML.
@@ -75,35 +101,25 @@ This page explains every part of the console in simple words, with screenshots.
 
 ## How the console works
 
+The path of every request, from your browser to your PostgreSQL clusters:
+
+```mermaid
+flowchart LR
+    U["You (browser)"] -->|"HTTPS"| C["KeenPG console"]
+    C --> K["Kubernetes"]
+    K --> O["KeenPG operator"]
+    O --> PG["Your PostgreSQL clusters"]
+
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    class U,C,K,O step
+    class PG ok
+```
+
 1. **You** fill a form or press a button in the console.
 2. **The console** checks that you are allowed to do this. It then saves your request in Kubernetes as a `KeenPGCluster` object and writes an entry in the audit log.
 3. **The KeenPG operator**, a program running inside your Kubernetes, sees the request. It creates everything the database needs: pods, disks, network services, passwords, certificates and backup jobs.
 4. **The operator keeps watching.** If a pod crashes, a disk is lost or someone deletes a service by mistake, the operator puts it back.
-
-```mermaid
-sequenceDiagram
-    actor U as You
-    participant C as Console
-    participant K as Kubernetes
-    participant O as KeenPG operator
-    participant P as Your PostgreSQL cluster
-
-    U->>C: Fill a form or press a button
-    C->>C: Check you are allowed
-    C->>K: Save KeenPGCluster object
-    C->>C: Write audit log entry
-    K->>O: Operator sees the request
-    O->>P: Create pods, disks, services, passwords, certificates, backup jobs
-    loop Keeps watching
-        O->>P: Put back anything that crashed or was deleted
-    end
-```
-
-!!! info "How to read the diagrams"
-
-    The diagrams on this page use the same colours everywhere:
-    **blue** = a normal step, **green** = a good result, **amber** = take care,
-    **red** = danger or data loss, **purple** = optional or advanced, **grey** = not managed by KeenPG.
 
 !!! tip "The console and the command line always agree"
 
@@ -121,22 +137,22 @@ sequenceDiagram
 
 | Word | Meaning |
 | :---- | :---- |
-| 🗂️ **Project** | A group of databases. In Kubernetes this is a *namespace*, for example `apps` or `analytics`. **All projects** shows every project at once. |
-| 🐘 **Cluster** | One PostgreSQL database service: one primary and its replicas. |
-| 👑 **Primary** (also *leader*) | The main server. All writes go here. |
-| 📄 **Replica** (also *standby*) | A live copy of the primary. It can serve reads and takes over if the primary fails. |
-| 🤝 **Sync standby** | A replica that confirms every write before the primary says "done", so no data is lost if the primary fails. |
-| 🚨 **Failover** | A replica becomes the primary **automatically** because the primary stopped. |
-| 🔁 **Switchover** | You move the primary role to a replica **on purpose**, for example before maintenance. |
-| ⏱️ **Lag** | How far a replica is behind the primary. `0 B` means fully up to date. |
-| 🧭 **Patroni** | The tool inside each pod that chooses the primary and handles failover. |
-| 💾 **pgBackRest** | The backup tool. |
-| 📦 **Repository (repo)** | Where backups are kept: a disk inside Kubernetes, or object storage (S3, GCS, Azure). |
-| ⏪ **Point-in-time restore** | Restoring a database to an exact moment, for example "yesterday at 10:15". |
-| 🔀 **PgBouncer** | A connection pooler. Many application connections share a few database connections. |
-| 🔐 **Secret** | A safe place in Kubernetes for passwords, keys and certificates. |
-| 📡 **Collector** | A small helper container added to each database pod when **Monitoring** is on. It collects metrics and, with **Logging**, the logs. |
-| 📊 **Prometheus / Loki / Grafana** | Prometheus stores the metrics, Loki stores the logs, Grafana shows both as dashboards. |
+| **Project** | A group of databases. In Kubernetes this is a *namespace*, for example `apps` or `analytics`. **All projects** shows every project at once. |
+| **Cluster** | One PostgreSQL database service: one primary and its replicas. |
+| **Primary** (also *leader*) | The main server. All writes go here. |
+| **Replica** (also *standby*) | A live copy of the primary. It can serve reads and takes over if the primary fails. |
+| **Sync standby** | A replica that confirms every write before the primary says "done", so no data is lost if the primary fails. |
+| **Failover** | A replica becomes the primary **automatically** because the primary stopped. |
+| **Switchover** | You move the primary role to a replica **on purpose**, for example before maintenance. |
+| **Lag** | How far a replica is behind the primary. `0 B` means fully up to date. |
+| **Patroni** | The tool inside each pod that chooses the primary and handles failover. |
+| **pgBackRest** | The backup tool. |
+| **Repository (repo)** | Where backups are kept: a disk inside Kubernetes, or object storage (S3, GCS, Azure). |
+| **Point-in-time restore** | Restoring a database to an exact moment, for example "yesterday at 10:15". |
+| **PgBouncer** | A connection pooler. Many application connections share a few database connections. |
+| **Secret** | A safe place in Kubernetes for passwords, keys and certificates. |
+| **Collector** | A small helper container added to each database pod when **Monitoring** is on. It collects metrics and, with **Logging**, the logs. |
+| **Prometheus / Loki / Grafana** | Prometheus stores the metrics, Loki stores the logs, Grafana shows both as dashboards. |
 
 How the main parts fit together:
 
@@ -148,9 +164,9 @@ flowchart LR
     P -->|"live copy"| R["Replica (standby)"]
     PAT["Patroni"] -. "chooses the primary" .-> P
 
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef opt fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    classDef opt fill:#8e5bb5,stroke:#5f3a80,color:#fff
     class App,S,R,PAT step
     class P ok
     class PB opt
@@ -165,9 +181,9 @@ flowchart LR
     Prom --> G["Grafana dashboards"]
     Loki --> G
 
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef opt fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    classDef opt fill:#8e5bb5,stroke:#5f3a80,color:#fff
     class Col,Prom step
     class Loki opt
     class G ok
@@ -179,21 +195,7 @@ flowchart LR
 
     **Skip this part** if KeenPG is already installed for you.
 
-```mermaid
-flowchart LR
-    A["helm install"] --> B["Wait until all pods are Running"]
-    B --> C["Change the console service to NodePort"]
-    C --> D["Open the console in your browser"]
-    D --> E["Browser warns about the certificate: Advanced → Continue"]
-    E -.-> F["Optional: dashboards and logs"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef opt fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
-    class A,B,C,D,E step
-    class F opt
-```
-
-**Install the chart**
+### Install the chart
 
 Run this from the folder that holds the chart. It installs everything: the operator, the console and the console's own database.
 
@@ -252,7 +254,7 @@ kubectl apply -k config/logging         # Loki, only if you want logs
 1. Open the console address in your browser.
 2. Type your **username** and **password**, then click **Sign In**.
 
-**The first password**
+### The first password
 
 Helm makes a random password for the user `admin` and keeps it in the Secret `keenpgo-console-admin`. Read it with:
 
@@ -278,7 +280,7 @@ To choose the password yourself, add `--set console.admin.password='Choose-A-Pas
 
 You stay signed in for 12 hours. To sign out, click your name → **Sign out**.
 
-**Forgot the password?**
+### Reset a forgotten password
 
 ??? question "Forgot the admin password?"
 
@@ -289,8 +291,8 @@ You stay signed in for 12 hours. To sign out, click your name → **Sign out**.
         A["Remove the admin user from the console database"] --> B["Restart the console"]
         B --> C["Console creates admin again with the password from the Secret"]
 
-        classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-        classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
+        classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+        classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
         class A,B step
         class C ok
     ```
@@ -308,24 +310,11 @@ You stay signed in for 12 hours. To sign out, click your name → **Sign out**.
 
 The console always uses **HTTPS**. It makes its own **self-signed certificate** the first time it starts, and keeps it in the Secret `keenpgo-console-tls`.
 
-```mermaid
-flowchart LR
-    A["Console starts for the first time"] --> B["Makes its own self-signed certificate"]
-    B --> C["Keeps it in the Secret keenpgo-console-tls"]
-    C --> D["Every console pod and every restart uses it"]
-    D -.-> E["Valid for 2 years: a new one is made 30 days before it ends"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef warn fill:#fff8e1,stroke:#f9a825,color:#5d4037
-    class A,B,C,D step
-    class E warn
-```
-
 - Nothing else is needed: no cert-manager and no extra job. It works the same with Helm, kubectl, Argo CD and OpenShift.
 - Every console pod and every restart uses the same certificate. It is valid for 2 years; the console makes a new one 30 days before it ends.
 - `http://` on the same port is sent on to `https://` by itself.
 
-**Stop the browser warning**
+### Stop the browser warning
 
 Save the certificate and trust it on your computer (it is its own authority):
 
@@ -335,7 +324,7 @@ kubectl -n keenpg-operator get secret keenpgo-console-tls -o jsonpath='{.data.tl
 
 Then trust it on your system:
 
-<div class="grid cards" markdown>
+<div class="grid cards os-cards" markdown>
 
 -   :fontawesome-brands-windows:{ .lg .middle } __Windows__
 
@@ -365,7 +354,7 @@ Then trust it on your system:
 
 </div>
 
-**Advanced HTTPS setups**
+### Advanced HTTPS setups
 
 === "Your address in the certificate"
 
@@ -410,10 +399,10 @@ Every page has the same frame:
 
 | Area | What it does |
 | :---- | :---- |
-| 🧭 **Left menu** | Opens each page. On small screens it shows only icons; click **»** at the bottom to open it. Pages with an arrow (**Observability**) open a list of sub-pages. |
-| 📁 **Project** (top left) | Chooses the project you are working in. **All projects** (the default) shows the clusters of every project you can see. |
-| ➕ **Create cluster** (top right) | Starts a new database from any page. |
-| 👤 **Your name** (top right) | Change your password, manage users (admins only), sign out. |
+| **Left menu** | Opens each page. On small screens it shows only icons; click **»** at the bottom to open it. Pages with an arrow (**Observability**) open a list of sub-pages. |
+| **Project** (top left) | Chooses the project you are working in. **All projects** (the default) shows the clusters of every project you can see. |
+| **Create cluster** (top right) | Starts a new database from any page. |
+| **Your name** (top right) | Change your password, manage users (admins only), sign out. |
 
 ![Project list with All projects](assets/images/console/console-all-projects.png)
 
@@ -433,23 +422,23 @@ The Home page is your daily check: in one look you see whether everything is fin
 
 *Home page*
 
-**Top card**
+### Top card
 
 - **Operator ready 1/1** means the KeenPG operator is running.
 - The chips show the **PostgreSQL versions** you can use.
 - The four shortcuts open **Create cluster**, **SQL editor**, **Databases** and **Migration**.
 
-**Count cards**
+### Count cards
 
 | Card | Meaning |
 | :---- | :---- |
-| 🔵 **Clusters** ring | All clusters, split by state. |
-| 🟢 **Healthy** | Clusters with every pod ready. |
-| 🟠 **Need attention** | Clusters with a problem. Open them first. |
-| 🟡 **Being created** | New clusters that are still starting. |
-| ☸️ **Kubernetes health** | Problems in Kubernetes itself, for example a node that is not ready. |
+| **Clusters** ring | All clusters, split by state. |
+| **Healthy** | Clusters with every pod ready. |
+| **Need attention** | Clusters with a problem. Open them first. |
+| **Being created** | New clusters that are still starting. |
+| **Kubernetes health** | Problems in Kubernetes itself, for example a node that is not ready. |
 
-**Your clusters**
+### Your clusters
 
 One card per cluster. Each card shows:
 
@@ -466,32 +455,18 @@ Lower on the page, **Recent activity** lists what happened lately (for example "
 
 Click **Create cluster** (top right). The form has 9 numbered steps. While you fill it, the **Summary** on the right shows what you will get.
 
-```mermaid
-flowchart LR
-    S1["1. Project and name"] --> S2["2. PostgreSQL"] --> S3["3. Instances and resources"] --> S4["4. Backups"]
-    S4 -.-> S5["5. Connection pooling"] -.-> S6["6. Network, security, monitoring"] -.-> S7["7. Users and databases"] -.-> S8["8. PostgreSQL parameters"] -.-> S9["9. Initial data"]
-    S9 --> F["Check Summary → Create cluster"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef opt fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
-    class S1,S2,S3,S4 step
-    class S5,S6,S7,S8,S9 opt
-    class F ok
-```
-
 ![Create cluster: project, name and version](assets/images/console/console-create-cluster.png)
 
 *Create cluster: project, name and version*
 
-**Step 1: Project and name**
+### Step 1: Project and name
 
 - **Project:** where the cluster will live. Click **New…** to make a new project.
 - **Cluster name:** lowercase letters, digits and `-`, for example `orders-db`. You can't change it later.
 - **Environment:** development, staging or production. This is a label that helps you sort and find clusters.
 - **Description:** optional, for example "orders and payments".
 
-**Step 2: PostgreSQL**
+### Step 2: PostgreSQL
 
 - Pick the **version** (15, 16, 17 or 18). Use the newest unless your application needs an older one.
 - **PostGIS:** pick a version only if you store maps or locations.
@@ -501,7 +476,7 @@ flowchart LR
 
 *Create cluster: pods, size and backups*
 
-**Step 3: Instances and resources**
+### Step 3: Instances and resources
 
 - **Encrypted storage** turns on by itself when your Kubernetes has encrypting disks.
 - **Pods:** how many PostgreSQL servers you get.
@@ -510,13 +485,13 @@ flowchart LR
 - **Size:** click a preset (table below), or type your own values.
 - **Require a different node for each pod** puts each copy on a different machine, so one broken machine can't take down every copy.
 
-| Preset | :material-cpu-64-bit: CPU | :material-memory: Memory | :material-harddisk: Disk |
-| :---- | :----: | :----: | :----: |
-| 🟢 **Small** | `0.25` | `512 MiB` | `2 GiB` |
-| 🟠 **Medium** | `1` | `2 GiB` | `20 GiB` |
-| 🔴 **Large** | `4` | `8 GiB` | `100 GiB` |
+| Preset | CPU | Memory | Disk |
+| :---- | :---- | :---- | :---- |
+| Small | 0.25 | 512 MiB | 2 GiB |
+| Medium | 1 | 2 GiB | 20 GiB |
+| Large | 4 | 8 GiB | 100 GiB |
 
-**Step 4: Backups**
+### Step 4: Backups
 
 - Keep **Enable backups** on. Without backups you can't restore or clone.
 - **Storage:** a *volume* (a disk inside Kubernetes) or *object storage* (S3, GCS, Azure). Object storage needs a credentials Secret first, from **Secrets & keys**.
@@ -526,7 +501,7 @@ flowchart LR
     - **Incremental:** changes since the last backup of any type.
 - **Keep full backups:** how many full backups to keep. Older ones are removed automatically.
 
-**Steps 5 to 9 (optional)**
+### Steps 5 to 9 (optional)
 
 | Step | What to set |
 | :---- | :---- |
@@ -536,7 +511,7 @@ flowchart LR
 | **8. PostgreSQL parameters** | Settings such as `max_connections`. Leave the defaults if you aren't sure. |
 | **9. Initial data** | Start empty, or start from another cluster's backup, optionally at a point in time. |
 
-**Step 6 details: Monitoring and logging**
+#### Step 6 details: Monitoring and logging
 
 ![Create cluster: Monitoring and Logging](assets/images/console/console-create-monitoring-logging.png)
 
@@ -549,7 +524,7 @@ Both are **off** unless you tick them:
 
 You can change both later. See [Monitoring and logging](#monitoring-and-logging).
 
-**Finish**
+### Finish
 
 Check the **Summary**, optionally click **View YAML** to see the exact definition, then click **Create cluster**.
 
@@ -570,7 +545,7 @@ Click **Clusters** in the menu to see every cluster of the project you picked, o
 | Column | Meaning |
 | :---- | :---- |
 | **Cluster** | The name. Click it to open the cluster. |
-| **Status** | 🟢 `healthy`, 🟡 `deploying`, 🔴 `degraded` or ⚫ `stopped`. |
+| **Status** | `healthy`{ .st-ok }, `deploying`{ .st-warn }, `degraded`{ .st-bad } or `stopped`{ .st-off }. |
 | **Environment** | The label you chose (development, production…). |
 | **Instances** | Ready pods / total pods, for example `3/3`. |
 | **PostgreSQL** | Major version. |
@@ -587,43 +562,24 @@ Open a cluster to see everything about it. The header shows its health, environm
 
 *Cluster overview*
 
-```mermaid
-flowchart LR
-    H["Open a cluster"] --> T1["Overview"]
-    H --> T2["Backup & Restore"]
-    H --> T3["Users & databases"]
-    H --> T4["Configuration"]
-    H --> T5["Metrics"]
-    H --> T6["Pods & logs"]
-    H --> T7["Events"]
-    H --> T8["YAML"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef warn fill:#fff8e1,stroke:#f9a825,color:#5d4037
-    classDef opt fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
-    class H,T1,T2,T3,T4,T5,T6 step
-    class T7 warn
-    class T8 opt
-```
-
 ### The tabs
 
 | Tab | What it shows and what you can do |
 | :---- | :---- |
-| 🏠 **Overview** | Every member with its **role** (leader, sync_standby, replica), **state** and **lag**, the Patroni console (below), services, instance sets and the **Features** card. |
-| 💾 **Backup & Restore** | Backup schedules, the list of backups, and the backup jobs. See [Backup and restore](#backup-and-restore). |
-| 👥 **Users & databases** | Users the operator manages, with **Connection**, **Edit**, **Add user** and remove. |
-| ⚙️ **Configuration** | PostgreSQL parameters and extra `pg_hba` access rules. Click **Save** to apply. |
-| 📈 **Metrics** | Uptime, connections, cache hit rate, replication lag, database sizes and the longest-running queries. |
-| 📦 **Pods & logs** | Every pod with its status and restarts. **Logs** opens a pod's log. **Delete** recreates a stuck pod. |
-| 🔔 **Events** | What Kubernetes and the operator reported, newest first. ==Look here first when something is wrong.== |
-| 📝 **YAML** | The full cluster definition. Advanced users can edit it and click **Save**. |
+| **Overview** | Every member with its **role** (leader, sync_standby, replica), **state** and **lag**, the Patroni console (below), services, instance sets and the **Features** card. |
+| **Backup & Restore** | Backup schedules, the list of backups, and the backup jobs. See [Backup and restore](#backup-and-restore). |
+| **Users & databases** | Users the operator manages, with **Connection**, **Edit**, **Add user** and remove. |
+| **Configuration** | PostgreSQL parameters and extra `pg_hba` access rules. Click **Save** to apply. |
+| **Metrics** | Uptime, connections, cache hit rate, replication lag, database sizes and the longest-running queries. |
+| **Pods & logs** | Every pod with its status and restarts. **Logs** opens a pod's log. **Delete** recreates a stuck pod. |
+| **Events** | What Kubernetes and the operator reported, newest first. **Look here first when something is wrong.** |
+| **YAML** | The full cluster definition. Advanced users can edit it and click **Save**. |
 
 ### Reading the members table
 
-- 👑 **leader** is the primary.
-- 🤝 **sync_standby** is a replica that has every write.
-- 📄 **replica** is a normal copy.
+- **leader** is the primary.
+- **sync_standby** is a replica that has every write.
+- **replica** is a normal copy.
 - **State** should be `running` for the leader and `streaming` for the others.
 - **Lag** of `0 B` means up to date. A large, growing lag means a replica is falling behind.
 
@@ -635,9 +591,9 @@ flowchart LR
     W -->|"Yes"| BAD["Replica is falling behind"]
     W -->|"No"| GOOD["Up to date"]
 
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef bad fill:#ffebee,stroke:#c62828,color:#b71c1c
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    classDef bad fill:#d04a47,stroke:#8f2c2a,color:#fff
     class SS,R,W step
     class L,GOOD ok
     class BAD bad
@@ -649,34 +605,13 @@ The panel under the members table runs safe Patroni commands for you. The answer
 
 | Button | What it does |
 | :---- | :---- |
-| 📋 **list / history / show-config** | Show the members, past leader changes, and the current settings. |
-| 🔁 **switchover** | Moves the leader to a healthy replica, with a short pause in writes. |
-| 🚨 **failover** | Forces a new leader. ==Only for emergencies==, when the leader is unhealthy. |
-| 🔄 **restart / reload** | Restarts a member, or reloads its settings without a restart. |
-| 🛠️ **reinit** | Rebuilds a broken replica from scratch from the leader. |
-| ⏸️ **pause / resume** | Turns automatic failover off and on, for planned maintenance. |
-| ♻️ **Rolling restart** | Restarts every member one by one, replicas first. |
-
-```mermaid
-flowchart TD
-    Q{"What do you need?"}
-    Q -->|"Look"| A["list / history / show-config"]
-    Q -->|"Move the leader on purpose"| B["switchover"]
-    Q -->|"Leader is unhealthy"| C["failover<br/>(emergencies only)"]
-    Q -->|"Apply a setting"| D["restart / reload"]
-    Q -->|"Replica is broken"| E["reinit"]
-    Q -->|"Planned maintenance"| F["pause / resume"]
-    Q -->|"Restart everything"| G["Rolling restart"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef warn fill:#fff8e1,stroke:#f9a825,color:#5d4037
-    classDef bad fill:#ffebee,stroke:#c62828,color:#b71c1c
-    class Q step
-    class A,B,D,G ok
-    class E,F warn
-    class C bad
-```
+| **list / history / show-config** | Show the members, past leader changes, and the current settings. |
+| **switchover** | Moves the leader to a healthy replica, with a short pause in writes. |
+| **failover** | Forces a new leader. **Only for emergencies**, when the leader is unhealthy. |
+| **restart / reload** | Restarts a member, or reloads its settings without a restart. |
+| **reinit** | Rebuilds a broken replica from scratch from the leader. |
+| **pause / resume** | Turns automatic failover off and on, for planned maintenance. |
+| **Rolling restart** | Restarts every member one by one, replicas first. |
 
 ### The Actions menu
 
@@ -686,38 +621,15 @@ Click **Actions** (top right of the cluster page).
 
 *Actions menu*
 
-| Action | What happens | Type |
-| :---- | :---- | :----: |
-| 🔁 **Switchover (Patroni picks)** | Patroni moves the primary to the best replica. Applications reconnect within seconds. | 🟢 Safe |
-| ♻️ **Rolling restart** | All pods restart one at a time, replicas first. Use it after a setting that needs a restart. | 🟠 Maintenance |
-| 💾 **Back up now (full)** | Starts a full backup immediately. | 🟢 Safe |
-| ⏹️ **Stop cluster** | Shuts down all PostgreSQL pods to save resources. **Data is kept.** **Start cluster** brings it back. | 🟠 Maintenance |
-| ⏸️ **Suspend reconciliation** | The operator stops managing this cluster: it neither changes nor repairs it. Use only for short maintenance. **Resume** to continue. | 🟠 Maintenance |
-| 🧬 **Clone to new cluster** | Makes a new cluster from this one's backups. The original is not changed. | 🟢 Safe |
-| 🗑️ **Delete cluster** | Deletes the cluster, **its disks and the backups in its volume repositories**. You must type the name to confirm. ==This can't be undone.== | 🔴 Destructive |
-
-```mermaid
-flowchart LR
-    ACT["Actions"] --> SAFE["Safe"]
-    ACT --> MAINT["Maintenance"]
-    ACT --> DEL["Destructive"]
-    SAFE --> S1["Switchover"]
-    SAFE --> S2["Back up now (full)"]
-    SAFE --> S3["Clone to new cluster"]
-    MAINT --> M1["Rolling restart"]
-    MAINT --> M2["Stop cluster / Start cluster"]
-    MAINT --> M3["Suspend / Resume reconciliation"]
-    DEL --> D1["Delete cluster<br/>(type the name to confirm)"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef warn fill:#fff8e1,stroke:#f9a825,color:#5d4037
-    classDef bad fill:#ffebee,stroke:#c62828,color:#b71c1c
-    class ACT step
-    class SAFE,S1,S2,S3 ok
-    class MAINT,M1,M2,M3 warn
-    class DEL,D1 bad
-```
+| Action | What happens |
+| :---- | :---- |
+| **Switchover (Patroni picks)** | Patroni moves the primary to the best replica. Applications reconnect within seconds. |
+| **Rolling restart** | All pods restart one at a time, replicas first. Use it after a setting that needs a restart. |
+| **Back up now (full)** | Starts a full backup immediately. |
+| **Stop cluster** | Shuts down all PostgreSQL pods to save resources. **Data is kept.** **Start cluster** brings it back. |
+| **Suspend reconciliation** | The operator stops managing this cluster: it neither changes nor repairs it. Use only for short maintenance. **Resume** to continue. |
+| **Clone to new cluster** | Makes a new cluster from this one's backups. The original is not changed. |
+| **Delete cluster** | Deletes the cluster, **its disks and the backups in its volume repositories**. You must type the name to confirm. **This can't be undone.** |
 
 !!! danger "Delete cluster can't be undone"
 
@@ -739,10 +651,10 @@ The console asks first and tells you what will happen:
 
 | Change | What happens |
 | :---- | :---- |
-| 🟢 **Monitoring on** | The collector is added to every pod, with `pg_stat_statements` for slow queries. **The PostgreSQL pods restart one by one, replicas first.** |
-| 🔴 **Monitoring off** | The collector is removed, and Logging goes off too. The pods restart one by one. |
-| 🟢 **Logging on** | Logs go to Loki. No restart is needed, except the very first time: the operator restarts once to turn on log collection, and each monitored cluster then needs one **Rolling restart** (cluster → **Actions**) before PostgreSQL writes its own log lines. |
-| 🔴 **Logging off** | Logs are no longer sent. Logs already in Loki stay until they expire (7 days). |
+| **Monitoring on** | The collector is added to every pod, with `pg_stat_statements` for slow queries. **The PostgreSQL pods restart one by one, replicas first.** |
+| **Monitoring off** | The collector is removed, and Logging goes off too. The pods restart one by one. |
+| **Logging on** | Logs go to Loki. No restart is needed, except the very first time: the operator restarts once to turn on log collection, and each monitored cluster then needs one **Rolling restart** (cluster → **Actions**) before PostgreSQL writes its own log lines. |
+| **Logging off** | Logs are no longer sent. Logs already in Loki stay until they expire (7 days). |
 
 ```mermaid
 flowchart LR
@@ -759,9 +671,9 @@ flowchart LR
     end
     MON --> LOG
 
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef warn fill:#fff8e1,stroke:#f9a825,color:#5d4037
-    classDef bad fill:#ffebee,stroke:#c62828,color:#b71c1c
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    classDef warn fill:#b3760f,stroke:#7a500a,color:#fff
+    classDef bad fill:#d04a47,stroke:#8f2c2a,color:#fff
     class M1,M2,M3,L1,L2 ok
     class M4,M5,M6,L4,L5 bad
     class L3 warn
@@ -794,12 +706,12 @@ The window shows everything an application needs. Click the copy icon next to an
 
 | Field | Example | Use |
 | :---- | :---- | :---- |
-| 🌐 **Host** | `hippo-primary.apps.svc` | The address of the current primary. |
-| 🔌 **Port** | `5432` | The PostgreSQL port. |
-| 🗄️ **Database / User** | `app` | What to connect to, and as whom. |
-| 🔑 **Password** | (generated) | Also stored in the Secret `<cluster>-pguser-<user>`. |
-| 🔗 **URI** | `postgresql://app:…@hippo-primary.apps.svc:5432/app` | A complete connection string you can paste. |
-| 🔀 **pgBouncer host** | `hippo-pgbouncer.apps.svc` | Use this instead of the host when PgBouncer is on. |
+| **Host** | `hippo-primary.apps.svc` | The address of the current primary. |
+| **Port** | `5432` | The PostgreSQL port. |
+| **Database / User** | `app` | What to connect to, and as whom. |
+| **Password** | (generated) | Also stored in the Secret `<cluster>-pguser-<user>`. |
+| **URI** | `postgresql://app:…@hippo-primary.apps.svc:5432/app` | A complete connection string you can paste. |
+| **pgBouncer host** | `hippo-pgbouncer.apps.svc` | Use this instead of the host when PgBouncer is on. |
 
 ```mermaid
 flowchart LR
@@ -809,23 +721,23 @@ flowchart LR
     REP["Reports and dashboards"] -->|"read-only"| RPL["Replicas<br/>cluster-replicas.project.svc"]
     LAP["Your laptop"] -->|"kubectl port-forward"| PRI
 
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef opt fill:#f3e5f5,stroke:#7b1fa2,color:#4a148c
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    classDef opt fill:#8e5bb5,stroke:#5f3a80,color:#fff
     class APP,REP,LAP step
     class PRI,RPL ok
     class PGB opt
 ```
 
-**From an application inside Kubernetes**
+### From an application inside Kubernetes
 
 Use the URI as shown. You can also read it from the Secret `<cluster>-pguser-<user>`, which has the keys `host`, `port`, `user`, `password`, `dbname`, `uri` and `jdbc-uri`.
 
-**For read-only traffic**
+### For read-only traffic
 
 For reports and dashboards, use the replicas: `<cluster>-replicas.<project>.svc`, same port, user and password.
 
-**From your laptop**
+### From your laptop
 
 Forward the port first:
 
@@ -846,11 +758,11 @@ Open **Backup & Restore** in the menu (or the cluster's **Backup & Restore** tab
 
 *Backup and restore*
 
-**What the page shows**
+### What the page shows
 
-- 🗂️ **Repositories and schedules:** where backups go, when each type runs, and how many are kept. Click **Edit** to change them.
-- 💾 **Backups in the repositories:** every backup with its type (`full`, `diff`, `incr`), start time, duration, database size and backup size.
-- 📋 **Backup and restore jobs:** each run and whether it **Succeeded**.
+- **Repositories and schedules:** where backups go, when each type runs, and how many are kept. Click **Edit** to change them.
+- **Backups in the repositories:** every backup with its type (`full`, `diff`, `incr`), start time, duration, database size and backup size.
+- **Backup and restore jobs:** each run and whether it **Succeeded**.
 
 ```mermaid
 flowchart LR
@@ -859,11 +771,11 @@ flowchart LR
     PAGE --> J["Backup and restore jobs<br/>Succeeded"]
     R -->|"Edit"| R2["Change schedules and retention"]
 
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
     class PAGE,R,B,J,R2 step
 ```
 
-**Take a backup now**
+### Take a backup now
 
 Click **Back up now**. It appears under the jobs, then in the backup list when finished.
 
@@ -871,13 +783,13 @@ Click **Back up now**. It appears under the jobs, then in the backup list when f
 flowchart LR
     A["Click Back up now"] --> B["Appears under the jobs"] --> C["Shows in the backup list when finished"]
 
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
     class A,B step
     class C ok
 ```
 
-**Restore in place**
+### Restore in place
 
 This replaces **all** data in this cluster with a backup.
 
@@ -890,25 +802,11 @@ This replaces **all** data in this cluster with a backup.
 3. In **Point in time**, type the moment to go back to, for example `2026-11-02 10:15:00+05:30`. Leave it empty to restore to the latest point possible.
 4. Click **Restore**. The cluster stops, restores and starts again. Changes made after that moment are lost.
 
-```mermaid
-flowchart LR
-    A["Restore in place…"] --> B["Choose the Repository"] --> C["Point in time<br/>(empty = latest possible)"] --> D["Restore"]
-    D --> E["Cluster stops"] --> F["Restores"] --> G["Starts again"]
-    G -.-> H["Changes after that moment are lost"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef warn fill:#fff8e1,stroke:#f9a825,color:#5d4037
-    classDef bad fill:#ffebee,stroke:#c62828,color:#b71c1c
-    class A,B,C,D step
-    class E,F,G warn
-    class H bad
-```
-
 !!! warning "Restore in place replaces all data"
 
     Changes made after the chosen moment are lost. When in doubt, use **Clone to new cluster** instead.
 
-**Clone to new cluster**
+### Clone to new cluster
 
 This is the safe choice. The Create cluster form opens, already filled in, with the backup as its initial data. Pick a name and, if needed, a point in time, then click **Create cluster**. The original cluster is not touched.
 
@@ -919,9 +817,9 @@ flowchart LR
     I --> I1["Replaces all data in this cluster"]
     K --> K1["New cluster is created<br/>Original is not touched"]
 
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef bad fill:#ffebee,stroke:#c62828,color:#b71c1c
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    classDef bad fill:#d04a47,stroke:#8f2c2a,color:#fff
     class BK step
     class I,I1 bad
     class K,K1 ok
@@ -941,7 +839,7 @@ Run SQL on any database straight from your browser, on the **primary** or on a *
 
 *SQL editor on a replica*
 
-**Run a query**
+### Run a query
 
 1. Choose the **Cluster**, the **Server** and the **Database** at the top.
 2. Type your SQL. The left panel lists schemas, tables and views; click one to use its name.
@@ -952,13 +850,13 @@ Run SQL on any database straight from your browser, on the **primary** or on a *
 flowchart LR
     A["Choose Cluster, Server, Database"] --> B["Type your SQL"] --> C["Run, F5 or Ctrl+Enter"] --> D["Data output"] --> E["CSV download"]
 
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
     class A,B,C step
     class D,E ok
 ```
 
-**Choose the server**
+### Choose the server
 
 ![Server list](assets/images/console/console-sql-server.png)
 
@@ -966,26 +864,13 @@ flowchart LR
 
 | Server | Use it for |
 | :---- | :---- |
-| 👑 **Primary (read-write)** | The default. Everything, including changes. |
-| 📄 **Any replica (read-only)** | Reports and heavy reads, to keep load off the primary. The replicas share the work. |
-| 🎯 **One instance**, for example `hippo-instance1-wxyz-0 (replica, read-only)` | Checking one exact server, for example whether a replica has the latest data. |
-
-```mermaid
-flowchart TD
-    Q{"What do you want to run?"}
-    Q -->|"Changes, or everything"| P["Primary (read-write)"]
-    Q -->|"Reports and heavy reads"| R["Any replica (read-only)"]
-    Q -->|"Check one exact server"| I["One instance"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    class Q,R,I step
-    class P ok
-```
+| **Primary (read-write)** | The default. Everything, including changes. |
+| **Any replica (read-only)** | Reports and heavy reads, to keep load off the primary. The replicas share the work. |
+| **One instance**, for example `hippo-instance1-wxyz-0 (replica, read-only)` | Checking one exact server, for example whether a replica has the latest data. |
 
 On a replica an orange **read-only** label shows. Replicas are live copies, so queries that change data are refused there. The chip under the cluster tells you which server answered (**leader** or **standby** and its address).
 
-**More tools**
+### More tools
 
 - **Explain** and **Explain analyze** show how PostgreSQL runs a query, to help you make it faster.
 - **Messages** shows notices and errors. **Query history** shows what you ran before.
@@ -1009,28 +894,12 @@ The cards show the number of databases, total size, roles, open sessions, and wh
 
 | Tab | What you can do |
 | :---- | :---- |
-| 🛢️ **Databases** | Create, rename, change owner, drop. |
-| 🔐 **Roles & access** | Create users and groups, set passwords and expiry dates, and grant access per schema (connect / read / write / all). |
-| 🗂️ **Schemas** | Create and drop schemas. |
-| 🧩 **Extensions** | Install, update or remove extensions such as `pg_stat_statements`. |
-| 👀 **Sessions** | See who is connected and what they run. Cancel a query, or disconnect a session. |
-| 🧹 **Maintenance** | Run **VACUUM**, **ANALYZE**, **VACUUM FULL** or **REINDEX**, and see the largest tables with their dead rows. |
-
-```mermaid
-flowchart LR
-    DM["Database manager"] --> T1["Databases"]
-    DM --> T2["Roles & access"]
-    DM --> T3["Schemas"]
-    DM --> T4["Extensions"]
-    DM --> T5["Sessions"]
-    DM --> T6["Maintenance"]
-    DM -.->|"talks to PostgreSQL directly"| PG[("PostgreSQL")]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    class DM,T1,T2,T3,T4,T5,T6 step
-    class PG ok
-```
+| **Databases** | Create, rename, change owner, drop. |
+| **Roles & access** | Create users and groups, set passwords and expiry dates, and grant access per schema (connect / read / write / all). |
+| **Schemas** | Create and drop schemas. |
+| **Extensions** | Install, update or remove extensions such as `pg_stat_statements`. |
+| **Sessions** | See who is connected and what they run. Cancel a query, or disconnect a session. |
+| **Maintenance** | Run **VACUUM**, **ANALYZE**, **VACUUM FULL** or **REINDEX**, and see the largest tables with their dead rows. |
 
 !!! note "Items marked cluster spec"
 
@@ -1039,15 +908,6 @@ flowchart LR
 ## Observability
 
 **Observability** in the left menu opens two pages: **Dashboards** and **Kubernetes**.
-
-```mermaid
-flowchart LR
-    O["Observability"] --> D["Dashboards<br/>Grafana"]
-    O --> K["Kubernetes<br/>nodes and system pods"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    class O,D,K step
-```
 
 ### Dashboards
 
@@ -1061,30 +921,17 @@ The Grafana dashboards of every cluster, **inside the console**. You don't sign 
 2. Click a dashboard. It opens on the same page, with Grafana's own time range and filters.
 3. **All dashboards** goes back to the list; **Open in a new tab** opens it on its own.
 
-```mermaid
-flowchart LR
-    A["Observability › Dashboards"] --> B["Search dashboards"] --> C["Click a dashboard"]
-    C --> D["Opens on the same page<br/>Grafana time range and filters"]
-    D --> E["All dashboards: back to the list"]
-    D --> F["Open in a new tab"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    class A,B,C,E,F step
-    class D ok
-```
-
 | Dashboard | What it shows |
 | :---- | :---- |
-| 🐘 **PostgreSQL Overview** | All clusters at a glance. |
-| 🔬 **PostgreSQL Details** | One cluster in depth: connections, transactions, cache, locks, replication. |
-| ❤️ **PostgreSQL Service Health** | Saturation, errors and availability. |
-| 🐌 **Query Statistics** | The slowest and busiest queries (`pg_stat_statements`). |
-| 💾 **pgBackRest** | Backups and WAL archiving. |
-| 🔀 **PGBouncer** | Pools, client and server connections. |
-| 📦 **Pod Details** | CPU, memory, disk and network of each pod. |
-| 🚨 **Prometheus Alerts** | Alerts that are firing. |
-| 📜 **PostgreSQL Logs** | The logs, coloured by level (with Logging on). |
+| **PostgreSQL Overview** | All clusters at a glance. |
+| **PostgreSQL Details** | One cluster in depth: connections, transactions, cache, locks, replication. |
+| **PostgreSQL Service Health** | Saturation, errors and availability. |
+| **Query Statistics** | The slowest and busiest queries (`pg_stat_statements`). |
+| **pgBackRest** | Backups and WAL archiving. |
+| **PGBouncer** | Pools, client and server connections. |
+| **Pod Details** | CPU, memory, disk and network of each pod. |
+| **Prometheus Alerts** | Alerts that are firing. |
+| **PostgreSQL Logs** | The logs, coloured by level (with Logging on). |
 
 !!! info "Requirements"
 
@@ -1110,9 +957,9 @@ Discovery finds **other PostgreSQL databases** already running in your Kubernete
 
 *Discovery*
 
-- 🔢 **Top cards:** how many databases were found, and how many are healthy or need attention.
-- 🧰 **PostgreSQL operators:** which other operators are installed: CloudNativePG, Crunchy PGO, Percona, Zalando, StackGres, KubeDB.
-- 🐘 **PostgreSQL found:** each database with its source (an operator, a Helm chart, a plain StatefulSet, or an external service), version, ready pods, status, primary and services. Click the arrow for details.
+- **Top cards:** how many databases were found, and how many are healthy or need attention.
+- **PostgreSQL operators:** which other operators are installed: CloudNativePG, Crunchy PGO, Percona, Zalando, StackGres, KubeDB.
+- **PostgreSQL found:** each database with its source (an operator, a Helm chart, a plain StatefulSet, or an external service), version, ready pods, status, primary and services. Click the arrow for details.
 
 Discovery scans again every 30 seconds. **Crunchy PGO** and **Percona** databases can be moved into KeenPG on the **Migration** page.
 
@@ -1125,9 +972,9 @@ flowchart LR
     C1 --> MG["Move into KeenPG on the Migration page"]
     C2 --> MG
 
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef muted fill:#f5f5f5,stroke:#9e9e9e,color:#424242
+    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
+    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    classDef muted fill:#7c8794,stroke:#515a64,color:#fff
     class SC,F step
     class C1,C2,MG ok
     class C3 muted
@@ -1149,38 +996,6 @@ Move databases from **Crunchy PGO** or **Percona** into KeenPG. KeenPG reads the
     - **Keep in sync:** the new cluster follows the source and keeps copying its changes. When you are ready to switch, click **Cut over**, and the new cluster becomes a normal primary.
 5. Click **Restore into a new cluster**. Progress appears under **Migrations**.
 
-```mermaid
-flowchart LR
-    A["Migrate"] --> B["Source"] --> C["Repository and backup"] --> D{"How?"}
-    D -->|"Restore and leave for testing"| E["New KeenPG cluster<br/>Source keeps running"]
-    D -->|"Keep in sync"| F["New cluster follows the source"]
-    F -->|"Cut over"| G["New cluster becomes a normal primary"]
-    E --> H["Restore into a new cluster"]
-    F --> H
-    H --> I["Progress under Migrations"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef warn fill:#fff8e1,stroke:#f9a825,color:#5d4037
-    class A,B,C,D,H,I step
-    class E warn
-    class F,G ok
-```
-
-```mermaid
-sequenceDiagram
-    participant S as Source (Crunchy PGO or Percona)
-    participant K as KeenPG
-    participant N as New KeenPG cluster
-    K->>S: Read the source's own backups
-    K->>N: Build from the backup
-    Note over S: Never changed or stopped
-    opt Keep in sync
-        S-->>N: Changes keep being copied
-        K->>N: Cut over, becomes a normal primary
-    end
-```
-
 The new cluster has the same PostgreSQL major version as the source.
 
 ## Users and access
@@ -1191,37 +1006,17 @@ The new cluster has the same PostgreSQL major version as the source.
 
 *Users*
 
-- ➕ **Add user:** create an account.
-- 👥 **Group:** decides what the person can do (table below).
-- 🎚️ **Manage access:** fine-tune one person. Allow or deny single permissions, or limit them to some projects.
-- 🔑 **Key icon:** reset the person's password. 🗑️ **Trash icon:** remove the person.
+- **Add user:** create an account.
+- **Group:** decides what the person can do (table below).
+- **Manage access:** fine-tune one person. Allow or deny single permissions, or limit them to some projects.
+- **Key icon:** reset the person's password. **Trash icon:** remove the person.
 
 | Group | Can do |
 | :---- | :---- |
-| 👑 **Admin** | Everything: users, access policies, settings, audit log, SQL as superuser, Grafana admin. |
-| 🛠️ **Operator** | Create and run clusters, Patroni actions, backups, Secrets, Kubernetes pages, discovery and migration, SQL read/write. |
-| 🛢️ **DBA** | Only the database clusters, the SQL editor (as superuser) and the database manager. No Kubernetes pages, Secrets or settings. |
-| 👁️ **Viewer** | Read only. |
-
-```mermaid
-flowchart LR
-    U["User"] --> G["Group"]
-    G --> A["Admin<br/>everything"]
-    G --> O["Operator<br/>create and run clusters"]
-    G --> D["DBA<br/>databases and SQL"]
-    G --> V["Viewer<br/>read only"]
-    U --> M["Manage access<br/>allow, deny, limit to projects"]
-    U --> P["Access policies<br/>groups, teams, single users"]
-    P --> R{"Allow and deny both match?"}
-    R -->|"Yes"| X["Deny wins"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef bad fill:#ffebee,stroke:#c62828,color:#b71c1c
-    class U,G,O,D,V,M,P,R step
-    class A ok
-    class X bad
-```
+| **Admin** | Everything: users, access policies, settings, audit log, SQL as superuser, Grafana admin. |
+| **Operator** | Create and run clusters, Patroni actions, backups, Secrets, Kubernetes pages, discovery and migration, SQL read/write. |
+| **DBA** | Only the database clusters, the SQL editor (as superuser) and the database manager. No Kubernetes pages, Secrets or settings. |
+| **Viewer** | Read only. |
 
 The **Access policies** tab holds rules for groups, teams or single users, optionally limited to some projects, clusters or databases. **Deny wins over allow.** The Administrators policy can't be changed, so an admin can never lock themselves out.
 
@@ -1229,26 +1024,15 @@ The **Access policies** tab holds rules for groups, teams or single users, optio
 
 | Page | What it is for |
 | :---- | :---- |
-| 🔐 **Secrets & keys** | Create what some features need *before* you create a cluster: a **registry login** for private images, **S3 / GCS / Azure credentials** for backups, or a **TLS key pair**. Database passwords are not made here; the operator creates them. |
-| 📋 **Operations** | All backup and restore jobs, and all events, for every cluster, in one list. **Warning** lines need attention. |
-| 📁 **Settings → Projects** | The projects (namespaces) KeenPG uses. **Add project** makes a new one. |
-| 🤖 **Settings → Operator** | The operator's state and the image used for each PostgreSQL version and tool. |
-| ☸️ **Settings → Kubernetes** | Storage classes (disk types, and whether they can grow) and the nodes. |
-| 💽 **Settings → Console storage** | The console's own small database (users, sessions, audit log) and its disk. Click **Increase size** if it fills up. |
-| 🧾 **Settings → Audit log** | Every change and every SQL query that changes data: when, who, what. Kept for 180 days by default. |
+| **Secrets & keys** | Create what some features need *before* you create a cluster: a **registry login** for private images, **S3 / GCS / Azure credentials** for backups, or a **TLS key pair**. Database passwords are not made here; the operator creates them. |
+| **Operations** | All backup and restore jobs, and all events, for every cluster, in one list. **Warning** lines need attention. |
+| **Settings → Projects** | The projects (namespaces) KeenPG uses. **Add project** makes a new one. |
+| **Settings → Operator** | The operator's state and the image used for each PostgreSQL version and tool. |
+| **Settings → Kubernetes** | Storage classes (disk types, and whether they can grow) and the nodes. |
+| **Settings → Console storage** | The console's own small database (users, sessions, audit log) and its disk. Click **Increase size** if it fills up. |
+| **Settings → Audit log** | Every change and every SQL query that changes data: when, who, what. Kept for 180 days by default. |
 
 ## Upgrade the console
-
-```mermaid
-flowchart LR
-    A["helm upgrade"] --> B["Wait: rollout status"] --> C["Reload the browser<br/>Ctrl+Shift+R"]
-    A -.-> D["Same image tag?<br/>Make Kubernetes download it again"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef warn fill:#fff8e1,stroke:#f9a825,color:#5d4037
-    class A,B,C step
-    class D warn
-```
 
 ```sh title="Upgrade the console"
 helm upgrade keenpg ./keenpg-operator -n keenpg-operator --reuse-values
@@ -1257,76 +1041,57 @@ kubectl -n keenpg-operator rollout status deploy/keenpgo-console
 
 Then reload the browser with ++ctrl+shift+r++, so it doesn't keep the old page.
 
-- ✅ Your users, settings, audit log, the admin password and the HTTPS certificate are kept.
-- 🔄 If the image keeps the same tag (for example `v6.0`), make Kubernetes download it again: set the console's image pull policy to `Always` in your values, or run `kubectl -n keenpg-operator rollout restart deploy/keenpgo-console`.
-- 📈 Using logging? Make sure `operator.featureGates` still says `OpenTelemetryMetrics=true,OpenTelemetryLogs=true`.
+- Your users, settings, audit log, the admin password and the HTTPS certificate are kept.
+- If the image keeps the same tag (for example `v6.0`), make Kubernetes download it again: set the console's image pull policy to `Always` in your values, or run `kubectl -n keenpg-operator rollout restart deploy/keenpgo-console`.
+- Using logging? Make sure `operator.featureGates` still says `OpenTelemetryMetrics=true,OpenTelemetryLogs=true`.
 
 ## Common tasks
 
 | I want to… | Do this |
 | :---- | :---- |
-| 🔑 Get the admin password | Read the Secret `keenpgo-console-admin`. See [Sign in](#sign-in). |
-| 🗂️ See the clusters of every project | **Project** (top left) → **All projects**. |
-| ➕ Create a database for a new app | **Create cluster** → fill steps 1–7 → **Create cluster**. |
-| 🔌 Get my app's connection details | Cluster → **Users & databases** → **Connection**. |
-| 📊 Run a report without loading the primary | **SQL Editor** → **Server** → **Any replica (read-only)**. |
-| 💾 Back up before a risky change | Cluster → **Actions** → **Back up now (full)**. |
-| ⏪ Recover data deleted by mistake | **Backup & Restore** → **Clone to new cluster** → a time just before the mistake → copy the data back. |
-| 📄 Add a replica | Cluster → **YAML** → raise `replicas` under `instances` → **Save**. |
-| ⚙️ Change a PostgreSQL setting | Cluster → **Configuration** → change → **Save**. |
-| 🔁 Move the primary before maintenance | Cluster → **Actions** → **Switchover**. |
-| ⏹️ Pause a test database to save resources | Cluster → **Actions** → **Stop cluster** (data is kept). |
-| 📡 Turn on metrics or logs for a cluster | Cluster → **Overview** → **Features** → **Monitoring** / **Logging**. |
-| 📈 See the dashboards | **Observability** → **Dashboards** → click a dashboard. |
-| 🐌 Find slow queries | **Observability** → **Dashboards** → **Query Statistics**, or cluster → **Metrics**. |
-| 📜 Read a cluster's logs | **Observability** → **Dashboards** → **PostgreSQL Logs** (Logging on). |
-| 🩺 Find out why a cluster isn't healthy | Cluster → **Events**, then **Pods & logs**. |
-| 👁️ Give a colleague read-only access | **Settings → Users** → **Add user** → group **Viewer**. |
-| 🧾 See who changed something | **Settings → Audit log**. |
+| Get the admin password | `kubectl -n keenpg-operator get secret keenpgo-console-admin -o jsonpath='{.data.password}' | base64 -d` (see [Sign in](#sign-in)) |
+| See the clusters of every project | **Project** (top left) → **All projects**. |
+| Create a database for a new app | **Create cluster** → fill steps 1–7 → **Create cluster**. |
+| Get my app's connection details | Cluster → **Users & databases** → **Connection**. |
+| Run a report without loading the primary | **SQL Editor** → **Server** → **Any replica (read-only)**. |
+| Back up before a risky change | Cluster → **Actions** → **Back up now (full)**. |
+| Recover data deleted by mistake | **Backup & Restore** → **Clone to new cluster** → a time just before the mistake → copy the data back. |
+| Add a replica | Cluster → **YAML** → raise `replicas` under `instances` → **Save**. |
+| Change a PostgreSQL setting | Cluster → **Configuration** → change → **Save**. |
+| Move the primary before maintenance | Cluster → **Actions** → **Switchover**. |
+| Pause a test database to save resources | Cluster → **Actions** → **Stop cluster** (data is kept). |
+| Turn on metrics or logs for a cluster | Cluster → **Overview** → **Features** → **Monitoring** / **Logging**. |
+| See the dashboards | **Observability** → **Dashboards** → click a dashboard. |
+| Find slow queries | **Observability** → **Dashboards** → **Query Statistics**, or cluster → **Metrics**. |
+| Read a cluster's logs | **Observability** → **Dashboards** → **PostgreSQL Logs** (Logging on). |
+| Find out why a cluster isn't healthy | Cluster → **Events**, then **Pods & logs**. |
+| Give a colleague read-only access | **Settings → Users** → **Add user** → group **Viewer**. |
+| See who changed something | **Settings → Audit log**. |
 
 ## Troubleshooting
 
 Start here when something is wrong:
 
-```mermaid
-flowchart LR
-    P["Something is wrong"] --> E["Cluster → Events"]
-    E --> L["Pods & logs"]
-    L --> T["Find it in the table below"]
-    T --> S{"Still stuck?"}
-    S -->|"No"| OK["Solved"]
-    S -->|"Yes"| SUP["Send the output at the end of this section to KeenPG support"]
-
-    classDef step fill:#e3f2fd,stroke:#1976d2,color:#0d3c6e
-    classDef ok fill:#e8f5e9,stroke:#2e7d32,color:#1b5e20
-    classDef warn fill:#fff8e1,stroke:#f9a825,color:#5d4037
-    classDef bad fill:#ffebee,stroke:#c62828,color:#b71c1c
-    class E,L,T,S step
-    class OK ok
-    class SUP warn
-    class P bad
-```
-
 | What you see | What it means | What to do |
 | :---- | :---- | :---- |
-| 🖼️ Pods show **ImagePullBackOff** or **401 Unauthorized** | Kubernetes can't download the images. | The registry login is missing or wrong. Run `helm upgrade` with `pullSecret.create=true` and your `auth.json`, then delete the stuck pods. |
-| ❓ **manifest unknown** / **not found** | That image version doesn't exist in the registry. | Contact KeenPG support. |
-| 🔒 The browser says **"Your connection is not private"** | The console's certificate is self-signed. | Expected. Click **Advanced → Continue**, or trust the certificate (see [HTTPS](#https-and-the-certificate)). |
-| 🔑 **"Wrong username or password"** for `admin` | The password is not `admin`: Helm made a random one. | Read it from the Secret `keenpgo-console-admin` (see [Sign in](#sign-in)). Still wrong? Reset the admin as shown there. |
-| 🛑 Console log: **password authentication failed for user "keenpgo"** | The Secret `keenpgo-console-db` no longer matches the console database (for example it was deleted and made again). | Put the old password back into the Secret, or give the database the new one. Ask KeenPG support for the exact commands for your case. |
-| 💽 A pod stays **Pending**, or a **PersistentVolumeError** event | No disk could be created. | Check **Settings → Kubernetes** for a storage class with free space. |
-| 🧱 A **MissingRequiredImage** event | No image is set for that PostgreSQL version. | Choose a version offered in the Create cluster form. |
-| ⏳ The cluster stays **deploying** | Something is blocking the start. | Read the cluster's **Events** tab, then **Pods & logs**. |
-| 🐢 A replica's lag keeps growing | The replica is falling behind or stuck. | Overview → Patroni console → choose the member → **reinit**. |
-| 🚫 **Monitoring** or **Logging** is greyed out | Prometheus or Loki is not installed. | `kubectl apply -k config/monitoring` (and `config/logging` for logs). |
-| 📉 **Dashboards:** "The dashboards are not available" | Grafana is not installed or not reachable. | `kubectl apply -k config/monitoring`. If Grafana runs elsewhere, set `KEENPGO_GRAFANA_URL` on the console. |
-| 🌐 **Dashboards:** a panel says **origin not allowed** | A proxy in front of the console changes the address. | `kubectl -n keenpg-operator set env deploy/keenpg-grafana GF_SECURITY_CSRF_TRUSTED_ORIGINS=<your console address>` |
-| 📜 **Dashboards:** "the operator has log collection turned off" | A `helm upgrade` removed the logging setting. | Click **Turn on again**, and add `OpenTelemetryLogs=true` to `operator.featureGates` in your values. |
-| 🕳️ Logging is on, but no **PostgreSQL** log lines (Patroni lines arrive) | PostgreSQL has not restarted since log collection was turned on. | Cluster → **Actions** → **Rolling restart**. |
-| ✏️ SQL editor: **"cannot execute … in a read-only transaction"** | You ran a change on a replica. | Pick **Primary (read-write)** in **Server**. |
-| 🗄️ "No console database is configured" | The console's own database isn't running. | Check the pod `keenpgo-console-db-0` in the `keenpg-operator` project. |
+| Pods show **ImagePullBackOff** or **401 Unauthorized** | Kubernetes can't download the images. | The registry login is missing or wrong. Run `helm upgrade` with `pullSecret.create=true` and your `auth.json`, then delete the stuck pods. |
+| **manifest unknown** / **not found** | That image version doesn't exist in the registry. | Contact KeenPG support. |
+| The browser says **"Your connection is not private"** | The console's certificate is self-signed. | Expected. Click **Advanced → Continue**, or trust the certificate (see [HTTPS](#https-and-the-certificate)). |
+| **"Wrong username or password"** for `admin` | The password is not `admin`: Helm made a random one. | Read it from the Secret `keenpgo-console-admin` (see [Sign in](#sign-in)). Still wrong? Reset the admin as shown there. |
+| Console log: **password authentication failed for user "keenpgo"** | The Secret `keenpgo-console-db` no longer matches the console database (for example it was deleted and made again). | Put the old password back into the Secret, or give the database the new one. Ask KeenPG support for the exact commands for your case. |
+| A pod stays **Pending**, or a **PersistentVolumeError** event | No disk could be created. | Check **Settings → Kubernetes** for a storage class with free space. |
+| A **MissingRequiredImage** event | No image is set for that PostgreSQL version. | Choose a version offered in the Create cluster form. |
+| The cluster stays **deploying** | Something is blocking the start. | Read the cluster's **Events** tab, then **Pods & logs**. |
+| A replica's lag keeps growing | The replica is falling behind or stuck. | Overview → Patroni console → choose the member → **reinit**. |
+| **Monitoring** or **Logging** is greyed out | Prometheus or Loki is not installed. | `kubectl apply -k config/monitoring` (and `config/logging` for logs). |
+| **Dashboards:** "The dashboards are not available" | Grafana is not installed or not reachable. | `kubectl apply -k config/monitoring`. If Grafana runs elsewhere, set `KEENPGO_GRAFANA_URL` on the console. |
+| **Dashboards:** a panel says **origin not allowed** | A proxy in front of the console changes the address. | `kubectl -n keenpg-operator set env deploy/keenpg-grafana GF_SECURITY_CSRF_TRUSTED_ORIGINS=<your console address>` |
+| **Dashboards:** "the operator has log collection turned off" | A `helm upgrade` removed the logging setting. | Click **Turn on again**, and add `OpenTelemetryLogs=true` to `operator.featureGates` in your values. |
+| Logging is on, but no **PostgreSQL** log lines (Patroni lines arrive) | PostgreSQL has not restarted since log collection was turned on. | Cluster → **Actions** → **Rolling restart**. |
+| SQL editor: **"cannot execute … in a read-only transaction"** | You ran a change on a replica. | Pick **Primary (read-write)** in **Server**. |
+| "No console database is configured" | The console's own database isn't running. | Check the pod `keenpgo-console-db-0` in the `keenpg-operator` project. |
 
-**Still stuck?**
+### Still stuck?
 
 Send this output to KeenPG support:
 
@@ -1341,11 +1106,11 @@ kubectl -n keenpg-operator logs deploy/keenpgo-console --tail=200
 
 !!! danger "Read these before you change anything in production"
 
-    - 🗑️ **Deleting a cluster is permanent.** It removes the cluster's disks and the backups in its volume repositories. Keep important backups in object storage too, or clone before you delete.
-    - ⏪ **Restore in place replaces all data.** When in doubt, use **Clone to new cluster**.
-    - 🐘 **Use 2 or more pods for production.** With one pod there is no automatic failover.
-    - 💾 **Keep backups on.** Without them you can't restore or clone.
-    - 🔑 **Change the admin password** on the first day, and never share it in chats or tickets.
-    - 📡 **Turning Monitoring on or off restarts the PostgreSQL pods** one by one. Do it in a quiet hour for busy production databases.
-    - ⏸️ **Suspend reconciliation only for short maintenance.** While suspended, the operator doesn't repair the cluster.
-    - 🔐 **Don't delete the Secrets `keenpgo-console-db` or `keenpgo-console-admin`.** The console database keeps its first password; a new Secret won't match it.
+    - **Deleting a cluster is permanent.** It removes the cluster's disks and the backups in its volume repositories. Keep important backups in object storage too, or clone before you delete.
+    - **Restore in place replaces all data.** When in doubt, use **Clone to new cluster**.
+    - **Use 2 or more pods for production.** With one pod there is no automatic failover.
+    - **Keep backups on.** Without them you can't restore or clone.
+    - **Change the admin password** on the first day, and never share it in chats or tickets.
+    - **Turning Monitoring on or off restarts the PostgreSQL pods** one by one. Do it in a quiet hour for busy production databases.
+    - **Suspend reconciliation only for short maintenance.** While suspended, the operator doesn't repair the cluster.
+    - **Don't delete the Secrets `keenpgo-console-db` or `keenpgo-console-admin`.** The console database keeps its first password; a new Secret won't match it.
