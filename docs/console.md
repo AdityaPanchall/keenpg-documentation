@@ -193,7 +193,7 @@ flowchart LR
     class F opt
 ```
 
-### Install the chart
+**Install the chart**
 
 Run this from the folder that holds the chart. It installs everything: the operator, the console and the console's own database.
 
@@ -252,7 +252,7 @@ kubectl apply -k config/logging         # Loki, only if you want logs
 1. Open the console address in your browser.
 2. Type your **username** and **password**, then click **Sign In**.
 
-### The first password
+**The first password**
 
 Helm makes a random password for the user `admin` and keeps it in the Secret `keenpgo-console-admin`. Read it with:
 
@@ -278,7 +278,7 @@ To choose the password yourself, add `--set console.admin.password='Choose-A-Pas
 
 You stay signed in for 12 hours. To sign out, click your name → **Sign out**.
 
-### Forgot the password?
+**Forgot the password?**
 
 ??? question "Forgot the admin password?"
 
@@ -325,7 +325,7 @@ flowchart LR
 - Every console pod and every restart uses the same certificate. It is valid for 2 years; the console makes a new one 30 days before it ends.
 - `http://` on the same port is sent on to `https://` by itself.
 
-### Stop the browser warning
+**Stop the browser warning**
 
 Save the certificate and trust it on your computer (it is its own authority):
 
@@ -335,7 +335,7 @@ kubectl -n keenpg-operator get secret keenpgo-console-tls -o jsonpath='{.data.tl
 
 Then trust it on your system:
 
-<div class="grid cards os-cards" markdown>
+<div class="grid cards" markdown>
 
 -   :fontawesome-brands-windows:{ .lg .middle } __Windows__
 
@@ -365,7 +365,7 @@ Then trust it on your system:
 
 </div>
 
-### Advanced HTTPS setups
+**Advanced HTTPS setups**
 
 === "Your address in the certificate"
 
@@ -433,13 +433,13 @@ The Home page is your daily check: in one look you see whether everything is fin
 
 *Home page*
 
-### Top card
+**Top card**
 
 - **Operator ready 1/1** means the KeenPG operator is running.
 - The chips show the **PostgreSQL versions** you can use.
 - The four shortcuts open **Create cluster**, **SQL editor**, **Databases** and **Migration**.
 
-### Count cards
+**Count cards**
 
 | Card | Meaning |
 | :---- | :---- |
@@ -449,7 +449,7 @@ The Home page is your daily check: in one look you see whether everything is fin
 | 🟡 **Being created** | New clusters that are still starting. |
 | ☸️ **Kubernetes health** | Problems in Kubernetes itself, for example a node that is not ready. |
 
-### Your clusters
+**Your clusters**
 
 One card per cluster. Each card shows:
 
@@ -484,14 +484,14 @@ flowchart LR
 
 *Create cluster: project, name and version*
 
-### Step 1: Project and name
+**Step 1: Project and name**
 
 - **Project:** where the cluster will live. Click **New…** to make a new project.
 - **Cluster name:** lowercase letters, digits and `-`, for example `orders-db`. You can't change it later.
 - **Environment:** development, staging or production. This is a label that helps you sort and find clusters.
 - **Description:** optional, for example "orders and payments".
 
-### Step 2: PostgreSQL
+**Step 2: PostgreSQL**
 
 - Pick the **version** (15, 16, 17 or 18). Use the newest unless your application needs an older one.
 - **PostGIS:** pick a version only if you store maps or locations.
@@ -501,7 +501,7 @@ flowchart LR
 
 *Create cluster: pods, size and backups*
 
-### Step 3: Instances and resources
+**Step 3: Instances and resources**
 
 - **Encrypted storage** turns on by itself when your Kubernetes has encrypting disks.
 - **Pods:** how many PostgreSQL servers you get.
@@ -510,13 +510,13 @@ flowchart LR
 - **Size:** click a preset (table below), or type your own values.
 - **Require a different node for each pod** puts each copy on a different machine, so one broken machine can't take down every copy.
 
-| Preset | CPU | Memory | Disk |
-| :---- | :---- | :---- | :---- |
-| Small | 0.25 | 512 MiB | 2 GiB |
-| Medium | 1 | 2 GiB | 20 GiB |
-| Large | 4 | 8 GiB | 100 GiB |
+| Preset | :material-cpu-64-bit: CPU | :material-memory: Memory | :material-harddisk: Disk |
+| :---- | :----: | :----: | :----: |
+| 🟢 **Small** | `0.25` | `512 MiB` | `2 GiB` |
+| 🟠 **Medium** | `1` | `2 GiB` | `20 GiB` |
+| 🔴 **Large** | `4` | `8 GiB` | `100 GiB` |
 
-### Step 4: Backups
+**Step 4: Backups**
 
 - Keep **Enable backups** on. Without backups you can't restore or clone.
 - **Storage:** a *volume* (a disk inside Kubernetes) or *object storage* (S3, GCS, Azure). Object storage needs a credentials Secret first, from **Secrets & keys**.
@@ -526,7 +526,7 @@ flowchart LR
     - **Incremental:** changes since the last backup of any type.
 - **Keep full backups:** how many full backups to keep. Older ones are removed automatically.
 
-### Steps 5 to 9 (optional)
+**Steps 5 to 9 (optional)**
 
 | Step | What to set |
 | :---- | :---- |
@@ -536,7 +536,7 @@ flowchart LR
 | **8. PostgreSQL parameters** | Settings such as `max_connections`. Leave the defaults if you aren't sure. |
 | **9. Initial data** | Start empty, or start from another cluster's backup, optionally at a point in time. |
 
-### Step 6 details: Monitoring and logging
+**Step 6 details: Monitoring and logging**
 
 ![Create cluster: Monitoring and Logging](assets/images/console/console-create-monitoring-logging.png)
 
@@ -549,7 +549,7 @@ Both are **off** unless you tick them:
 
 You can change both later. See [Monitoring and logging](#monitoring-and-logging).
 
-### Finish
+**Finish**
 
 Check the **Summary**, optionally click **View YAML** to see the exact definition, then click **Create cluster**.
 
@@ -570,7 +570,7 @@ Click **Clusters** in the menu to see every cluster of the project you picked, o
 | Column | Meaning |
 | :---- | :---- |
 | **Cluster** | The name. Click it to open the cluster. |
-| **Status** | `healthy`{ .st-ok }, `deploying`{ .st-warn }, `degraded`{ .st-bad } or `stopped`{ .st-off }. |
+| **Status** | 🟢 `healthy`, 🟡 `deploying`, 🔴 `degraded` or ⚫ `stopped`. |
 | **Environment** | The label you chose (development, production…). |
 | **Instances** | Ready pods / total pods, for example `3/3`. |
 | **PostgreSQL** | Major version. |
@@ -616,7 +616,7 @@ flowchart LR
 | ⚙️ **Configuration** | PostgreSQL parameters and extra `pg_hba` access rules. Click **Save** to apply. |
 | 📈 **Metrics** | Uptime, connections, cache hit rate, replication lag, database sizes and the longest-running queries. |
 | 📦 **Pods & logs** | Every pod with its status and restarts. **Logs** opens a pod's log. **Delete** recreates a stuck pod. |
-| 🔔 **Events** | What Kubernetes and the operator reported, newest first. **Look here first when something is wrong.** |
+| 🔔 **Events** | What Kubernetes and the operator reported, newest first. ==Look here first when something is wrong.== |
 | 📝 **YAML** | The full cluster definition. Advanced users can edit it and click **Save**. |
 
 ### Reading the members table
@@ -651,7 +651,7 @@ The panel under the members table runs safe Patroni commands for you. The answer
 | :---- | :---- |
 | 📋 **list / history / show-config** | Show the members, past leader changes, and the current settings. |
 | 🔁 **switchover** | Moves the leader to a healthy replica, with a short pause in writes. |
-| 🚨 **failover** | Forces a new leader. **Only for emergencies**, when the leader is unhealthy. |
+| 🚨 **failover** | Forces a new leader. ==Only for emergencies==, when the leader is unhealthy. |
 | 🔄 **restart / reload** | Restarts a member, or reloads its settings without a restart. |
 | 🛠️ **reinit** | Rebuilds a broken replica from scratch from the leader. |
 | ⏸️ **pause / resume** | Turns automatic failover off and on, for planned maintenance. |
@@ -686,15 +686,15 @@ Click **Actions** (top right of the cluster page).
 
 *Actions menu*
 
-| Action | What happens |
-| :---- | :---- |
-| 🔁 **Switchover (Patroni picks)** | Patroni moves the primary to the best replica. Applications reconnect within seconds. |
-| ♻️ **Rolling restart** | All pods restart one at a time, replicas first. Use it after a setting that needs a restart. |
-| 💾 **Back up now (full)** | Starts a full backup immediately. |
-| ⏹️ **Stop cluster** | Shuts down all PostgreSQL pods to save resources. **Data is kept.** **Start cluster** brings it back. |
-| ⏸️ **Suspend reconciliation** | The operator stops managing this cluster: it neither changes nor repairs it. Use only for short maintenance. **Resume** to continue. |
-| 🧬 **Clone to new cluster** | Makes a new cluster from this one's backups. The original is not changed. |
-| 🗑️ **Delete cluster** | Deletes the cluster, **its disks and the backups in its volume repositories**. You must type the name to confirm. **This can't be undone.** |
+| Action | What happens | Type |
+| :---- | :---- | :----: |
+| 🔁 **Switchover (Patroni picks)** | Patroni moves the primary to the best replica. Applications reconnect within seconds. | 🟢 Safe |
+| ♻️ **Rolling restart** | All pods restart one at a time, replicas first. Use it after a setting that needs a restart. | 🟠 Maintenance |
+| 💾 **Back up now (full)** | Starts a full backup immediately. | 🟢 Safe |
+| ⏹️ **Stop cluster** | Shuts down all PostgreSQL pods to save resources. **Data is kept.** **Start cluster** brings it back. | 🟠 Maintenance |
+| ⏸️ **Suspend reconciliation** | The operator stops managing this cluster: it neither changes nor repairs it. Use only for short maintenance. **Resume** to continue. | 🟠 Maintenance |
+| 🧬 **Clone to new cluster** | Makes a new cluster from this one's backups. The original is not changed. | 🟢 Safe |
+| 🗑️ **Delete cluster** | Deletes the cluster, **its disks and the backups in its volume repositories**. You must type the name to confirm. ==This can't be undone.== | 🔴 Destructive |
 
 ```mermaid
 flowchart LR
@@ -817,15 +817,15 @@ flowchart LR
     class PGB opt
 ```
 
-### From an application inside Kubernetes
+**From an application inside Kubernetes**
 
 Use the URI as shown. You can also read it from the Secret `<cluster>-pguser-<user>`, which has the keys `host`, `port`, `user`, `password`, `dbname`, `uri` and `jdbc-uri`.
 
-### For read-only traffic
+**For read-only traffic**
 
 For reports and dashboards, use the replicas: `<cluster>-replicas.<project>.svc`, same port, user and password.
 
-### From your laptop
+**From your laptop**
 
 Forward the port first:
 
@@ -846,7 +846,7 @@ Open **Backup & Restore** in the menu (or the cluster's **Backup & Restore** tab
 
 *Backup and restore*
 
-### What the page shows
+**What the page shows**
 
 - 🗂️ **Repositories and schedules:** where backups go, when each type runs, and how many are kept. Click **Edit** to change them.
 - 💾 **Backups in the repositories:** every backup with its type (`full`, `diff`, `incr`), start time, duration, database size and backup size.
@@ -863,7 +863,7 @@ flowchart LR
     class PAGE,R,B,J,R2 step
 ```
 
-### Take a backup now
+**Take a backup now**
 
 Click **Back up now**. It appears under the jobs, then in the backup list when finished.
 
@@ -877,7 +877,7 @@ flowchart LR
     class C ok
 ```
 
-### Restore in place
+**Restore in place**
 
 This replaces **all** data in this cluster with a backup.
 
@@ -908,7 +908,7 @@ flowchart LR
 
     Changes made after the chosen moment are lost. When in doubt, use **Clone to new cluster** instead.
 
-### Clone to new cluster
+**Clone to new cluster**
 
 This is the safe choice. The Create cluster form opens, already filled in, with the backup as its initial data. Pick a name and, if needed, a point in time, then click **Create cluster**. The original cluster is not touched.
 
@@ -941,7 +941,7 @@ Run SQL on any database straight from your browser, on the **primary** or on a *
 
 *SQL editor on a replica*
 
-### Run a query
+**Run a query**
 
 1. Choose the **Cluster**, the **Server** and the **Database** at the top.
 2. Type your SQL. The left panel lists schemas, tables and views; click one to use its name.
@@ -958,7 +958,7 @@ flowchart LR
     class D,E ok
 ```
 
-### Choose the server
+**Choose the server**
 
 ![Server list](assets/images/console/console-sql-server.png)
 
@@ -985,7 +985,7 @@ flowchart TD
 
 On a replica an orange **read-only** label shows. Replicas are live copies, so queries that change data are refused there. The chip under the cluster tells you which server answered (**leader** or **standby** and its address).
 
-### More tools
+**More tools**
 
 - **Explain** and **Explain analyze** show how PostgreSQL runs a query, to help you make it faster.
 - **Messages** shows notices and errors. **Query history** shows what you ran before.
@@ -1326,7 +1326,7 @@ flowchart LR
 | ✏️ SQL editor: **"cannot execute … in a read-only transaction"** | You ran a change on a replica. | Pick **Primary (read-write)** in **Server**. |
 | 🗄️ "No console database is configured" | The console's own database isn't running. | Check the pod `keenpgo-console-db-0` in the `keenpg-operator` project. |
 
-### Still stuck?
+**Still stuck?**
 
 Send this output to KeenPG support:
 
