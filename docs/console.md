@@ -3,32 +3,6 @@ title: KeenPG Console
 description: A simple, step-by-step guide to every part of the KeenPG console.
 ---
 
-<style>
-.md-typeset table:not([class]) {
-  display: table;
-  width: 100%;
-  border: 1px solid var(--md-default-fg-color--lighter);
-  border-collapse: separate;
-  border-spacing: 0;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.md-typeset table:not([class]) th {
-  background-color: var(--md-default-fg-color--lightest);
-  border-bottom: 2px solid var(--md-default-fg-color--lighter);
-}
-.md-typeset table:not([class]) td {
-  border-top: 1px solid var(--md-default-fg-color--lightest);
-}
-.md-typeset table:not([class]) th:not(:last-child),
-.md-typeset table:not([class]) td:not(:last-child) {
-  border-right: 1px solid var(--md-default-fg-color--lightest);
-}
-.md-typeset table:not([class]) tbody tr:nth-child(even) {
-  background-color: var(--md-code-bg-color);
-}
-</style>
-
 # KeenPG Console
 
 The **KeenPG console** is a web page for running PostgreSQL on Kubernetes and OpenShift. From your browser you can create databases, connect applications, take backups and restore them, run SQL on the primary or on a replica, and watch every database on Grafana dashboards. You never need to write YAML.
@@ -44,7 +18,7 @@ This page explains every part of the console in simple words, with screenshots.
     - Run SQL, manage databases and read the dashboards.
     - Fix the most common problems.
 
-## Quick navigation
+## Contents
 
 <div class="grid cards" markdown>
 
@@ -105,13 +79,13 @@ The path of every request, from your browser to your PostgreSQL clusters:
 
 ```mermaid
 flowchart LR
-    U["You (browser)"] -->|"HTTPS"| C["KeenPG console"]
-    C --> K["Kubernetes"]
-    K --> O["KeenPG operator"]
-    O --> PG["Your PostgreSQL clusters"]
+    U["1. You (browser)"] -->|"2. HTTPS"| C["3. KeenPG console"]
+    C --> K["4. Kubernetes"]
+    K --> O["5. KeenPG operator"]
+    O --> PG["6. Your PostgreSQL clusters"]
 
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
     class U,C,K,O step
     class PG ok
 ```
@@ -155,8 +129,8 @@ flowchart LR
 | **Prometheus / Loki / Grafana** | Prometheus stores the metrics, Loki stores the logs, Grafana shows both as dashboards. |
 
 How the main parts fit together:
-
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '14px', 'lineColor': '#7986cb'}, 'flowchart': {'nodeSpacing': 36, 'rankSpacing': 48, 'padding': 14}}}%%
 flowchart LR
     App["Application"] --> PB["PgBouncer"]
     PB --> P["Primary (leader)"]
@@ -164,29 +138,12 @@ flowchart LR
     P -->|"live copy"| R["Replica (standby)"]
     PAT["Patroni"] -. "chooses the primary" .-> P
 
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
-    classDef opt fill:#8e5bb5,stroke:#5f3a80,color:#fff
+    classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px,color:#1f2937
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px,color:#1f2937
+    classDef opt fill:#9575cd26,stroke:#9575cd,stroke-width:2px,color:#1f2937
     class App,S,R,PAT step
     class P ok
     class PB opt
-```
-
-How metrics and logs reach the dashboards:
-
-```mermaid
-flowchart LR
-    Col["Collector"] -->|"metrics"| Prom["Prometheus"]
-    Col -->|"logs"| Loki["Loki"]
-    Prom --> G["Grafana dashboards"]
-    Loki --> G
-
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
-    classDef opt fill:#8e5bb5,stroke:#5f3a80,color:#fff
-    class Col,Prom step
-    class Loki opt
-    class G ok
 ```
 
 ## Install with Helm
@@ -195,7 +152,7 @@ flowchart LR
 
     **Skip this part** if KeenPG is already installed for you.
 
-### Install the chart
+**Install the chart**
 
 Run this from the folder that holds the chart. It installs everything: the operator, the console and the console's own database.
 
@@ -254,7 +211,7 @@ kubectl apply -k config/logging         # Loki, only if you want logs
 1. Open the console address in your browser.
 2. Type your **username** and **password**, then click **Sign In**.
 
-### The first password
+**The first password**
 
 Helm makes a random password for the user `admin` and keeps it in the Secret `keenpgo-console-admin`. Read it with:
 
@@ -280,7 +237,7 @@ To choose the password yourself, add `--set console.admin.password='Choose-A-Pas
 
 You stay signed in for 12 hours. To sign out, click your name → **Sign out**.
 
-### Reset a forgotten password
+**Reset a forgotten password**
 
 ??? question "Forgot the admin password?"
 
@@ -288,11 +245,11 @@ You stay signed in for 12 hours. To sign out, click your name → **Sign out**.
 
     ```mermaid
     flowchart LR
-        A["Remove the admin user from the console database"] --> B["Restart the console"]
-        B --> C["Console creates admin again with the password from the Secret"]
+        A["1. Remove the admin user from the console database"] --> B["2. Restart the console"]
+        B --> C["3. Console creates admin again with the password from the Secret"]
 
-        classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-        classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+        classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px
+        classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
         class A,B step
         class C ok
     ```
@@ -314,7 +271,7 @@ The console always uses **HTTPS**. It makes its own **self-signed certificate** 
 - Every console pod and every restart uses the same certificate. It is valid for 2 years; the console makes a new one 30 days before it ends.
 - `http://` on the same port is sent on to `https://` by itself.
 
-### Stop the browser warning
+**Stop the browser warning**
 
 Save the certificate and trust it on your computer (it is its own authority):
 
@@ -354,7 +311,7 @@ Then trust it on your system:
 
 </div>
 
-### Advanced HTTPS setups
+**Advanced HTTPS setups**
 
 === "Your address in the certificate"
 
@@ -422,13 +379,13 @@ The Home page is your daily check: in one look you see whether everything is fin
 
 *Home page*
 
-### Top card
+**Top card**
 
 - **Operator ready 1/1** means the KeenPG operator is running.
 - The chips show the **PostgreSQL versions** you can use.
 - The four shortcuts open **Create cluster**, **SQL editor**, **Databases** and **Migration**.
 
-### Count cards
+**Count cards**
 
 | Card | Meaning |
 | :---- | :---- |
@@ -438,7 +395,7 @@ The Home page is your daily check: in one look you see whether everything is fin
 | **Being created** | New clusters that are still starting. |
 | **Kubernetes health** | Problems in Kubernetes itself, for example a node that is not ready. |
 
-### Your clusters
+**Your clusters**
 
 One card per cluster. Each card shows:
 
@@ -459,14 +416,14 @@ Click **Create cluster** (top right). The form has 9 numbered steps. While you f
 
 *Create cluster: project, name and version*
 
-### Step 1: Project and name
+**Step 1: Project and name**
 
 - **Project:** where the cluster will live. Click **New…** to make a new project.
 - **Cluster name:** lowercase letters, digits and `-`, for example `orders-db`. You can't change it later.
 - **Environment:** development, staging or production. This is a label that helps you sort and find clusters.
 - **Description:** optional, for example "orders and payments".
 
-### Step 2: PostgreSQL
+**Step 2: PostgreSQL**
 
 - Pick the **version** (15, 16, 17 or 18). Use the newest unless your application needs an older one.
 - **PostGIS:** pick a version only if you store maps or locations.
@@ -476,7 +433,7 @@ Click **Create cluster** (top right). The form has 9 numbered steps. While you f
 
 *Create cluster: pods, size and backups*
 
-### Step 3: Instances and resources
+**Step 3: Instances and resources**
 
 - **Encrypted storage** turns on by itself when your Kubernetes has encrypting disks.
 - **Pods:** how many PostgreSQL servers you get.
@@ -491,7 +448,7 @@ Click **Create cluster** (top right). The form has 9 numbered steps. While you f
 | Medium | 1 | 2 GiB | 20 GiB |
 | Large | 4 | 8 GiB | 100 GiB |
 
-### Step 4: Backups
+**Step 4: Backups**
 
 - Keep **Enable backups** on. Without backups you can't restore or clone.
 - **Storage:** a *volume* (a disk inside Kubernetes) or *object storage* (S3, GCS, Azure). Object storage needs a credentials Secret first, from **Secrets & keys**.
@@ -501,7 +458,7 @@ Click **Create cluster** (top right). The form has 9 numbered steps. While you f
     - **Incremental:** changes since the last backup of any type.
 - **Keep full backups:** how many full backups to keep. Older ones are removed automatically.
 
-### Steps 5 to 9 (optional)
+**Steps 5 to 9 (optional)**
 
 | Step | What to set |
 | :---- | :---- |
@@ -511,7 +468,7 @@ Click **Create cluster** (top right). The form has 9 numbered steps. While you f
 | **8. PostgreSQL parameters** | Settings such as `max_connections`. Leave the defaults if you aren't sure. |
 | **9. Initial data** | Start empty, or start from another cluster's backup, optionally at a point in time. |
 
-#### Step 6 details: Monitoring and logging
+**Step 6 details: Monitoring and logging**
 
 ![Create cluster: Monitoring and Logging](assets/images/console/console-create-monitoring-logging.png)
 
@@ -524,7 +481,7 @@ Both are **off** unless you tick them:
 
 You can change both later. See [Monitoring and logging](#monitoring-and-logging).
 
-### Finish
+**Finish**
 
 Check the **Summary**, optionally click **View YAML** to see the exact definition, then click **Create cluster**.
 
@@ -591,9 +548,9 @@ flowchart LR
     W -->|"Yes"| BAD["Replica is falling behind"]
     W -->|"No"| GOOD["Up to date"]
 
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
-    classDef bad fill:#d04a47,stroke:#8f2c2a,color:#fff
+    classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
+    classDef bad fill:#e5393526,stroke:#e53935,stroke-width:2px
     class SS,R,W step
     class L,GOOD ok
     class BAD bad
@@ -670,10 +627,12 @@ flowchart LR
         L4["Off"] --> L5["Logs no longer sent, old logs stay 7 days"]
     end
     MON --> LOG
+    style MON fill:#9e9e9e1a,stroke:#9e9e9e
+    style LOG fill:#9e9e9e1a,stroke:#9e9e9e
 
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
-    classDef warn fill:#b3760f,stroke:#7a500a,color:#fff
-    classDef bad fill:#d04a47,stroke:#8f2c2a,color:#fff
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
+    classDef warn fill:#fb8c0026,stroke:#fb8c00,stroke-width:2px
+    classDef bad fill:#e5393526,stroke:#e53935,stroke-width:2px
     class M1,M2,M3,L1,L2 ok
     class M4,M5,M6,L4,L5 bad
     class L3 warn
@@ -721,23 +680,23 @@ flowchart LR
     REP["Reports and dashboards"] -->|"read-only"| RPL["Replicas<br/>cluster-replicas.project.svc"]
     LAP["Your laptop"] -->|"kubectl port-forward"| PRI
 
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
-    classDef opt fill:#8e5bb5,stroke:#5f3a80,color:#fff
+    classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
+    classDef opt fill:#9575cd26,stroke:#9575cd,stroke-width:2px
     class APP,REP,LAP step
     class PRI,RPL ok
     class PGB opt
 ```
 
-### From an application inside Kubernetes
+**From an application inside Kubernetes**
 
 Use the URI as shown. You can also read it from the Secret `<cluster>-pguser-<user>`, which has the keys `host`, `port`, `user`, `password`, `dbname`, `uri` and `jdbc-uri`.
 
-### For read-only traffic
+**For read-only traffic**
 
 For reports and dashboards, use the replicas: `<cluster>-replicas.<project>.svc`, same port, user and password.
 
-### From your laptop
+**From your laptop**
 
 Forward the port first:
 
@@ -758,38 +717,17 @@ Open **Backup & Restore** in the menu (or the cluster's **Backup & Restore** tab
 
 *Backup and restore*
 
-### What the page shows
+**What the page shows**
 
 - **Repositories and schedules:** where backups go, when each type runs, and how many are kept. Click **Edit** to change them.
 - **Backups in the repositories:** every backup with its type (`full`, `diff`, `incr`), start time, duration, database size and backup size.
 - **Backup and restore jobs:** each run and whether it **Succeeded**.
 
-```mermaid
-flowchart LR
-    PAGE["Backup & Restore page"] --> R["Repositories and schedules"]
-    PAGE --> B["Backups in the repositories<br/>full, diff, incr"]
-    PAGE --> J["Backup and restore jobs<br/>Succeeded"]
-    R -->|"Edit"| R2["Change schedules and retention"]
 
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    class PAGE,R,B,J,R2 step
-```
-
-### Take a backup now
+**Take a backup now**
 
 Click **Back up now**. It appears under the jobs, then in the backup list when finished.
-
-```mermaid
-flowchart LR
-    A["Click Back up now"] --> B["Appears under the jobs"] --> C["Shows in the backup list when finished"]
-
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
-    class A,B step
-    class C ok
-```
-
-### Restore in place
+**Restore in place**
 
 This replaces **all** data in this cluster with a backup.
 
@@ -806,24 +744,9 @@ This replaces **all** data in this cluster with a backup.
 
     Changes made after the chosen moment are lost. When in doubt, use **Clone to new cluster** instead.
 
-### Clone to new cluster
+**Clone to new cluster**
 
 This is the safe choice. The Create cluster form opens, already filled in, with the backup as its initial data. Pick a name and, if needed, a point in time, then click **Create cluster**. The original cluster is not touched.
-
-```mermaid
-flowchart LR
-    BK["A backup"] --> I["Restore in place"]
-    BK --> K["Clone to new cluster"]
-    I --> I1["Replaces all data in this cluster"]
-    K --> K1["New cluster is created<br/>Original is not touched"]
-
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
-    classDef bad fill:#d04a47,stroke:#8f2c2a,color:#fff
-    class BK step
-    class I,I1 bad
-    class K,K1 ok
-```
 
 Use a clone to:
 
@@ -839,7 +762,7 @@ Run SQL on any database straight from your browser, on the **primary** or on a *
 
 *SQL editor on a replica*
 
-### Run a query
+**Run a query**
 
 1. Choose the **Cluster**, the **Server** and the **Database** at the top.
 2. Type your SQL. The left panel lists schemas, tables and views; click one to use its name.
@@ -848,15 +771,15 @@ Run SQL on any database straight from your browser, on the **primary** or on a *
 
 ```mermaid
 flowchart LR
-    A["Choose Cluster, Server, Database"] --> B["Type your SQL"] --> C["Run, F5 or Ctrl+Enter"] --> D["Data output"] --> E["CSV download"]
+    A["1. Choose Cluster, Server, Database"] --> B["2. Type your SQL"] --> C["3. Run, F5 or Ctrl+Enter"] --> D["4. Data output"] --> E["5. CSV download"]
 
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
+    classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
     class A,B,C step
     class D,E ok
 ```
 
-### Choose the server
+**Choose the server**
 
 ![Server list](assets/images/console/console-sql-server.png)
 
@@ -870,7 +793,7 @@ flowchart LR
 
 On a replica an orange **read-only** label shows. Replicas are live copies, so queries that change data are refused there. The chip under the cluster tells you which server answered (**leader** or **standby** and its address).
 
-### More tools
+**More tools**
 
 - **Explain** and **Explain analyze** show how PostgreSQL runs a query, to help you make it faster.
 - **Messages** shows notices and errors. **Query history** shows what you ran before.
@@ -972,9 +895,9 @@ flowchart LR
     C1 --> MG["Move into KeenPG on the Migration page"]
     C2 --> MG
 
-    classDef step fill:#3b82c4,stroke:#1e5a94,color:#fff
-    classDef ok fill:#2e8b57,stroke:#1c5e3a,color:#fff
-    classDef muted fill:#7c8794,stroke:#515a64,color:#fff
+    classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
+    classDef muted fill:#9e9e9e26,stroke:#9e9e9e,stroke-width:2px
     class SC,F step
     class C1,C2,MG ok
     class C3 muted
@@ -1085,13 +1008,13 @@ Start here when something is wrong:
 | A replica's lag keeps growing | The replica is falling behind or stuck. | Overview → Patroni console → choose the member → **reinit**. |
 | **Monitoring** or **Logging** is greyed out | Prometheus or Loki is not installed. | `kubectl apply -k config/monitoring` (and `config/logging` for logs). |
 | **Dashboards:** "The dashboards are not available" | Grafana is not installed or not reachable. | `kubectl apply -k config/monitoring`. If Grafana runs elsewhere, set `KEENPGO_GRAFANA_URL` on the console. |
-| **Dashboards:** a panel says **origin not allowed** | A proxy in front of the console changes the address. | `kubectl -n keenpg-operator set env deploy/keenpg-grafana GF_SECURITY_CSRF_TRUSTED_ORIGINS=<your console address>` |
+| **Dashboards:** a panel says **origin not allowed** | A proxy in front of the console changes the address. | `kubectl -n keenpg-operator set env deploy/keenpgo-grafana GF_SECURITY_CSRF_TRUSTED_ORIGINS=<your console address>` |
 | **Dashboards:** "the operator has log collection turned off" | A `helm upgrade` removed the logging setting. | Click **Turn on again**, and add `OpenTelemetryLogs=true` to `operator.featureGates` in your values. |
 | Logging is on, but no **PostgreSQL** log lines (Patroni lines arrive) | PostgreSQL has not restarted since log collection was turned on. | Cluster → **Actions** → **Rolling restart**. |
 | SQL editor: **"cannot execute … in a read-only transaction"** | You ran a change on a replica. | Pick **Primary (read-write)** in **Server**. |
 | "No console database is configured" | The console's own database isn't running. | Check the pod `keenpgo-console-db-0` in the `keenpg-operator` project. |
 
-### Still stuck?
+**Still stuck?**
 
 Send this output to KeenPG support:
 
