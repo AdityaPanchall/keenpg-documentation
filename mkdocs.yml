@@ -71,6 +71,7 @@ nav:
   - Home: index.md
   - Guide to Console: console.md
   - Logging: logging.md
+  - Monitoring: monitoring.md
 
 extra_css:
   - stylesheets/extra.css
