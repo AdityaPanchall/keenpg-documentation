@@ -8,7 +8,7 @@ docs_dir: docs
 theme:
   name: material
 
-  logo: assets/images/console/keenpg-logo.png
+  logo: assets/images/console/keenpg-logo.svg
   favicon: assets/images/console/keenpg-logo.png
   
   features:
