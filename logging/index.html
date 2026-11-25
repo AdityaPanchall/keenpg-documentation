@@ -1,0 +1,1026 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for KeenPGO Console and PostgreSQL management">
+      
+      
+        <meta name="author" content="KeenPGO">
+      
+      
+        <link rel="canonical" href="https://AdityaPanchall.github.io/keenpg-documentation/logging/">
+      
+      
+        <link rel="prev" href="../console/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/console/keenpg-logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Logging - KeenPGO Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#logging-with-loki" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="KeenPGO Documentation" class="md-header__button md-logo" aria-label="KeenPGO Documentation" data-md-component="logo">
+      
+  <img src="../assets/images/console/keenpg-logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            KeenPGO Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Logging
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="KeenPGO Documentation" class="md-nav__button md-logo" aria-label="KeenPGO Documentation" data-md-component="logo">
+      
+  <img src="../assets/images/console/keenpg-logo.svg" alt="logo">
+
+    </a>
+    KeenPGO Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../console/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide to Console
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before you start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-enable-the-feature-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Enable the feature gates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-install-loki" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Install Loki
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-send-the-logs-of-a-cluster-to-loki" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Send the logs of a cluster to Loki
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-optional-choose-what-postgresql-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 (optional): Choose what PostgreSQL logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-see-the-logs-in-grafana" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: See the logs in Grafana
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 5: See the logs in Grafana">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#search-with-explore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search with Explore
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check-that-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check that it works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-how-long-logs-are-kept" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change how long logs are kept
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remove-logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remove logging
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#before-you-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Before you start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-enable-the-feature-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Enable the feature gates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-install-loki" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Install Loki
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-send-the-logs-of-a-cluster-to-loki" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Send the logs of a cluster to Loki
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-optional-choose-what-postgresql-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 (optional): Choose what PostgreSQL logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-see-the-logs-in-grafana" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: See the logs in Grafana
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 5: See the logs in Grafana">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#search-with-explore" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Search with Explore
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check-that-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check that it works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-how-long-logs-are-kept" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Change how long logs are kept
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#remove-logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remove logging
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="logging-with-loki">Logging with Loki<a class="headerlink" href="#logging-with-loki" title="Permanent link">&para;</a></h1>
+<p>This section shows how to collect the logs of your KeenPG clusters and see them in Grafana.</p>
+<p>KeenPG collects the logs of <strong>PostgreSQL</strong>, <strong>Patroni</strong>, <strong>pgBackRest</strong> and <strong>pgBouncer</strong>.
+The OpenTelemetry collector in each pod sends them to <strong>Loki</strong>. Loki stores them, and
+<strong>Grafana</strong> shows them.</p>
+<p>One Loki stores the logs of <strong>all clusters in all namespaces</strong>. You install it only once.</p>
+<p><img alt="KeenPG logging architecture" src="https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/logging-architecture.png" /></p>
+<h2 id="how-it-works">How it works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
+<p><img alt="How logs flow" src="https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/logging-flow.png" /></p>
+<ol>
+<li>PostgreSQL, Patroni, pgBackRest and pgBouncer write their log files in the pod.</li>
+<li>The OpenTelemetry collector (a sidecar in the same pod) reads these files.</li>
+<li>The collector sends the logs to Loki.</li>
+<li>You search and read the logs in Grafana.</li>
+</ol>
+<p>Loki keeps the logs for <strong>7 days</strong>. Old logs are deleted automatically.</p>
+<h2 id="before-you-start">Before you start<a class="headerlink" href="#before-you-start" title="Permanent link">&para;</a></h2>
+<ul>
+<li>KeenPG operator is installed.</li>
+<li>Monitoring (Prometheus and Grafana) is installed. Grafana comes from there:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># kubectl apply -k config/monitoring
+</code></pre></div>
+<h2 id="step-1-enable-the-feature-gates">Step 1: Enable the feature gates<a class="headerlink" href="#step-1-enable-the-feature-gates" title="Permanent link">&para;</a></h2>
+<p>The collector needs the <code>OpenTelemetryMetrics</code> and <code>OpenTelemetryLogs</code> feature gates in your <code>keenpgo</code> installation.</p>
+<p><strong>Check them</strong></p>
+<div class="highlight"><span class="filename">Check the feature gates</span><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>keenpg-operator<span class="w"> </span>get<span class="w"> </span>deploy<span class="w"> </span>keenpgo<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">'{.spec.template.spec.containers[0].env[?(@.name=="KEENPG_FEATURE_GATES")].value}'</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>OpenTelemetryMetrics=true,OpenTelemetryLogs=true
+</code></pre></div>
+<p><strong>If they are not set, turn them on</strong></p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">kubectl</label><label for="__tabbed_1_2">Helm</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><span class="filename">Enable the feature gates</span><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>keenpg-operator<span class="w"> </span><span class="nb">set</span><span class="w"> </span>env<span class="w"> </span>deploy/keenpgo<span class="w"> </span><span class="nv">KEENPG_FEATURE_GATES</span><span class="o">=</span><span class="s2">"OpenTelemetryMetrics=true,OpenTelemetryLogs=true"</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>If you install keenpgo with Helm, set it in <code>values.yaml</code> instead, so a later upgrade does not remove it:</p>
+<div class="highlight"><span class="filename">values.yaml</span><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">featureGates</span><span class="p">:</span><span class="w"> </span><span class="s">"OpenTelemetryMetrics=true,OpenTelemetryLogs=true"</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Using Helm? Do not skip the values file</p>
+<p>A command like <code>kubectl set env</code> is reset by the next <code>helm upgrade</code>. Put the feature gates in <code>values.yaml</code> to keep them.</p>
+</div>
+<h2 id="step-2-install-loki">Step 2: Install Loki<a class="headerlink" href="#step-2-install-loki" title="Permanent link">&para;</a></h2>
+<div class="highlight"><span class="filename">Install Loki</span><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-k<span class="w"> </span>config/logging
+</code></pre></div>
+<p>This installs Loki, the Loki data source for Grafana and the <strong>PostgreSQL Logs</strong> dashboard. Loki is deployed in the <code>keenpg-operator</code> namespace.</p>
+<p>Restart Grafana, so it loads the new data source:</p>
+<div class="highlight"><span class="filename">Restart Grafana</span><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>keenpg-operator<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deploy/keenpg-grafana
+</code></pre></div>
+<p><strong>Check the pods</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>keenpg-operator
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>NAME                                   READY   STATUS    RESTARTS   AGE
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>keenpg-alertmanager-8468ff65f6-lvp4l   1/1     Running   0          10m
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>keenpg-grafana-66949c8b4c-f8pxk        1/1     Running   0          1m
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>keenpg-loki-59769bf5d6-6nh5g           1/1     Running   0          2m
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>keenpg-prometheus-5c5c69549c-29j76     1/1     Running   0          10m
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>keenpgo-7b8d8dcc4f-tjnht               1/1     Running   0          15m
+</code></pre></div>
+<div class="highlight"><span class="filename">Check the Loki service</span><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>svc<span class="w"> </span>keenpg-loki<span class="w"> </span>-n<span class="w"> </span>keenpg-operator
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>keenpg-loki   ClusterIP   10.104.82.51    &lt;none&gt;        3100/TCP   2m
+</code></pre></div>
+<h2 id="step-3-send-the-logs-of-a-cluster-to-loki">Step 3: Send the logs of a cluster to Loki<a class="headerlink" href="#step-3-send-the-logs-of-a-cluster-to-loki" title="Permanent link">&para;</a></h2>
+<p>Add an <code>instrumentation</code> block to the spec of your <code>KeenPGCluster</code>, or patch a running cluster.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:2"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">Edit the spec</label><label for="__tabbed_2_2">Patch a running cluster</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><span class="filename">KeenPGCluster spec</span><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="nt">instrumentation</span><span class="p">:</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="nt">config</span><span class="p">:</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">      </span><span class="nt">exporters</span><span class="p">:</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">        </span><span class="nt">otlphttp/loki</span><span class="p">:</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">          </span><span class="nt">endpoint</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://keenpg-loki.keenpg-operator.svc:3100/otlp</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="nt">logs</span><span class="p">:</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">      </span><span class="nt">exporters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">otlphttp/loki</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">      </span><span class="nt">retentionPeriod</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1d</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><span class="filename">Patch the cluster</span><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nb">test</span><span class="w"> </span>patch<span class="w"> </span>keenpgcluster<span class="w"> </span>keenpg-ha<span class="w"> </span>--type<span class="w"> </span>merge<span class="w"> </span>-p<span class="w"> </span><span class="s1">'{"spec":{"instrumentation":{"config":{"exporters":{"otlphttp/loki":{"endpoint":"http://keenpg-loki.keenpg-operator.svc:3100/otlp"}}},"logs":{"exporters":["otlphttp/loki"],"retentionPeriod":"1d"}}}}'</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Setting</th>
+<th style="text-align: left;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>endpoint</code></td>
+<td style="text-align: left;">The address of Loki. If Loki runs in another namespace, change <code>keenpg-operator</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>retentionPeriod</code></td>
+<td style="text-align: left;">How long the log files stay <strong>inside the pod</strong>. Loki keeps its own copy for 7 days.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Check the collector</strong></p>
+<p>You will see a <code>collector</code> sidecar in the PostgreSQL, pgBouncer and repo host pods. The READY column shows one more container than before:</p>
+<div class="highlight"><span class="filename">List the pods of the cluster</span><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span><span class="nb">test</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>NAME                                   READY   STATUS    RESTARTS   AGE
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>keenpg-ha-pgbouncer-658994757d-8jsww   3/3     Running   0          5m
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>keenpg-ha-pgha1-64kd-0                 5/5     Running   0          5m
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>keenpg-ha-pgha1-fqp6-0                 5/5     Running   0          5m
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>keenpg-ha-repo-host-0                  3/3     Running   0          5m
+</code></pre></div>
+<h2 id="step-4-optional-choose-what-postgresql-logs">Step 4 (optional): Choose what PostgreSQL logs<a class="headerlink" href="#step-4-optional-choose-what-postgresql-logs" title="Permanent link">&para;</a></h2>
+<p>By default PostgreSQL logs errors, warnings and important events. To also log slow queries and other useful events, add these settings to your spec:</p>
+<div class="highlight"><span class="filename">KeenPGCluster spec</span><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">config</span><span class="p">:</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="nt">parameters</span><span class="p">:</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">      </span><span class="nt">log_min_duration_statement</span><span class="p">:</span><span class="w"> </span><span class="s">"1000"</span><span class="w">   </span><span class="c1"># queries slower than 1 second</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">      </span><span class="nt">log_min_error_statement</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">error</span><span class="w">       </span><span class="c1"># the query that caused an error</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">      </span><span class="nt">log_lock_waits</span><span class="p">:</span><span class="w"> </span><span class="s">"on"</span><span class="w">                 </span><span class="c1"># queries waiting for a lock</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">      </span><span class="nt">log_temp_files</span><span class="p">:</span><span class="w"> </span><span class="s">"10MB"</span><span class="w">               </span><span class="c1"># queries using a lot of temporary disk</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">      </span><span class="nt">log_autovacuum_min_duration</span><span class="p">:</span><span class="w"> </span><span class="s">"10s"</span><span class="w">   </span><span class="c1"># slow autovacuum runs</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">      </span><span class="nt">log_statement</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ddl</span><span class="w">                   </span><span class="c1"># CREATE, ALTER and DROP statements</span>
+</code></pre></div>
+<div class="admonition success">
+<p class="admonition-title">No restart needed</p>
+<p>These settings do not restart PostgreSQL.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">Never log every query in production</p>
+<p>Do not use <code>log_statement: all</code> or <code>log_min_duration_statement: "0"</code> in production. They log every query and create a huge amount of logs.</p>
+</div>
+<h2 id="step-5-see-the-logs-in-grafana">Step 5: See the logs in Grafana<a class="headerlink" href="#step-5-see-the-logs-in-grafana" title="Permanent link">&para;</a></h2>
+<div class="admonition tip">
+<p class="admonition-title">The easy way</p>
+<p>In the console, open <strong>Observability › Dashboards</strong> and click <strong>PostgreSQL Logs</strong>. The console signs you in to Grafana for you.</p>
+</div>
+<p>To open Grafana on its own, forward its port:</p>
+<div class="highlight"><span class="filename">Open Grafana</span><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>keenpg-operator<span class="w"> </span>port-forward<span class="w"> </span>svc/keenpg-grafana<span class="w"> </span><span class="m">3000</span>:3000
+</code></pre></div>
+<p>Go to <code>http://localhost:3000</code> and log in (default <code>admin</code> / <code>admin</code>).</p>
+<div class="admonition warning">
+<p class="admonition-title">Change the default Grafana password</p>
+<p><code>admin</code> / <code>admin</code> is only for a first look. Change it when Grafana asks you to.</p>
+</div>
+<p>Go to <strong>Dashboards</strong>. You will see the <strong>PostgreSQL Logs</strong> dashboard with the <code>logs</code> tag:</p>
+<p><img alt="Dashboards list" src="https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/grafana-dashboards-list.png" /></p>
+<p><em>Dashboards list</em></p>
+<p>Open <strong>PostgreSQL Logs</strong>:</p>
+<p><img alt="PostgreSQL Logs dashboard" src="https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/grafana-logs-dashboard.png" /></p>
+<p><em>PostgreSQL Logs dashboard</em></p>
+<p><strong>What the dashboard shows</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Part</th>
+<th style="text-align: left;">What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Counters</strong></td>
+<td style="text-align: left;">Fatal, errors, warnings, slow queries, backup problems and all log lines.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Log lines by level</strong></td>
+<td style="text-align: left;">How many lines each level wrote over time.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Problems</strong></td>
+<td style="text-align: left;">Fatal, errors and warnings from every component.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>PostgreSQL</strong></td>
+<td style="text-align: left;">All PostgreSQL logs, the slowest statements and slow queries.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Patroni</strong></td>
+<td style="text-align: left;">Leader changes, replicas and failover.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>pgBackRest</strong></td>
+<td style="text-align: left;">Backups and WAL archiving.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>pgBouncer</strong></td>
+<td style="text-align: left;">Connections and pool statistics.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Colours</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Colour</th>
+<th style="text-align: left;">Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Purple</strong></td>
+<td style="text-align: left;"><code>fatal</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Red</strong></td>
+<td style="text-align: left;"><code>error</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Yellow</strong></td>
+<td style="text-align: left;"><code>warning</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Green</strong></td>
+<td style="text-align: left;">normal</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Filter the logs</strong></p>
+<p>Use the filters at the top to choose a <strong>Namespace</strong>, <strong>Pod</strong> and <strong>Level</strong>, or type text in <strong>Search</strong>.</p>
+<p>Click a log line to see all its details: namespace, pod, container, level and the original log line.</p>
+<p><img alt="Details of a log line" src="https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/grafana-log-details.png" /></p>
+<p><em>Details of a log line</em></p>
+<p>Scroll down to see the logs of each component in its own section:</p>
+<p><img alt="Patroni, pgBackRest and pgBouncer logs" src="https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/grafana-logs-by-source.png" /></p>
+<p><em>Patroni, pgBackRest and pgBouncer logs</em></p>
+<h3 id="search-with-explore">Search with Explore<a class="headerlink" href="#search-with-explore" title="Permanent link">&para;</a></h3>
+<p>You can also search the logs yourself in <strong>Explore</strong>:</p>
+<ol>
+<li>Open <strong>Explore</strong> in Grafana.</li>
+<li>Choose the <strong>LOKI</strong> data source.</li>
+<li>Switch to <strong>Code</strong>.</li>
+<li>Type a query and click <strong>Run query</strong>.</li>
+</ol>
+<div class="highlight"><span class="filename">Useful queries</span><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>{k8s_namespace_name="test"}                                   # all logs of a namespace
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>{k8s_namespace_name="test"} |= "ERROR"                        # only lines with ERROR
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>{k8s_pod_name=~"keenpg-ha-pgha1-.*"} |= "duration:"           # slow queries of a cluster
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>{k8s_container_name="pgbouncer"}                              # pgBouncer logs
+</code></pre></div>
+<h2 id="check-that-it-works">Check that it works<a class="headerlink" href="#check-that-it-works" title="Permanent link">&para;</a></h2>
+<p>Create a test error in PostgreSQL:</p>
+<div class="highlight"><span class="filename">Create a test error</span><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nb">test</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>keenpg-ha-pgha1-64kd-0<span class="w"> </span>-c<span class="w"> </span>database<span class="w"> </span>--<span class="w"> </span>psql<span class="w"> </span>-c<span class="w"> </span><span class="s2">"SELECT 1/0"</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>ERROR:  division by zero
+</code></pre></div>
+<p>After about 30 seconds, the error shows in the <strong>Errors</strong> counter and in the <strong>Problems</strong> panel.</p>
+<pre class="mermaid"><code>flowchart LR
+    A["1. Run SELECT 1/0"] --&gt; B["2. PostgreSQL writes ERROR"] --&gt; C["3. Collector sends it to Loki"] --&gt; D["4. About 30 seconds later: Errors counter goes up"]
+
+    classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
+    class A,B,C step
+    class D ok</code></pre>
+<p><strong>No logs?</strong> Check these three things in order:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">1. The collector</label><label for="__tabbed_3_2">2. Loki</label><label for="__tabbed_3_3">3. Grafana</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p>Read the log of the collector in the pod:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span><span class="nb">test</span><span class="w"> </span>logs<span class="w"> </span>keenpg-ha-pgha1-64kd-0<span class="w"> </span>-c<span class="w"> </span>collector<span class="w"> </span>--tail<span class="o">=</span><span class="m">20</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>Check that Loki receives logs. The output must list your namespaces:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>keenpg-operator<span class="w"> </span>port-forward<span class="w"> </span>svc/keenpg-loki<span class="w"> </span><span class="m">3100</span>:3100<span class="w"> </span><span class="p">&amp;</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>curl<span class="w"> </span>-s<span class="w"> </span>localhost:3100/loki/api/v1/label/k8s_namespace_name/values
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>{"status":"success","data":["test"]}
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<p>Make sure the time range in Grafana is <strong>Last 1 hour</strong> or more.</p>
+</div>
+</div>
+</div>
+<h2 id="change-how-long-logs-are-kept">Change how long logs are kept<a class="headerlink" href="#change-how-long-logs-are-kept" title="Permanent link">&para;</a></h2>
+<p>Loki keeps logs for 7 days (<code>168h</code>). To change it, edit <code>config/logging/loki/config/loki.yaml</code>:</p>
+<div class="highlight"><span class="filename">config/logging/loki/config/loki.yaml</span><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nt">limits_config</span><span class="p">:</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">retention_period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">336h</span><span class="w">   </span><span class="c1"># 14 days</span>
+</code></pre></div>
+<p>Then apply it and restart Loki:</p>
+<div class="highlight"><span class="filename">Apply and restart</span><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-k<span class="w"> </span>config/logging
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>keenpg-operator<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deploy/keenpg-loki
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Disk size</p>
+<p>Loki stores the logs on a <strong>10Gi</strong> volume. For more days or more clusters, increase the size in <code>config/logging/loki/pvc.yaml</code>.</p>
+</div>
+<h2 id="remove-logging">Remove logging<a class="headerlink" href="#remove-logging" title="Permanent link">&para;</a></h2>
+<div class="highlight"><span class="filename">Remove Loki</span><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>-k<span class="w"> </span>config/logging
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>kubectl<span class="w"> </span>-n<span class="w"> </span>keenpg-operator<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deploy/keenpg-grafana
+</code></pre></div>
+<p>Then remove the <code>instrumentation.logs</code> block from your clusters too.</p>
+<div class="admonition danger">
+<p class="admonition-title">This deletes the stored logs</p>
+<p>Removing Loki also deletes all the logs it has stored. This can't be undone.</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "content.code.copy", "content.tabs.link"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
