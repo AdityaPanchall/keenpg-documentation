@@ -69,9 +69,12 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Quick Start: quickstart.md
+  - Features: features.md
   - Guide to Console: console.md
-  - Logging: logging.md
   - Monitoring: monitoring.md
+  - Logging: logging.md
+  
 
 extra_css:
   - stylesheets/extra.css
