@@ -72,6 +72,8 @@ nav:
   - Guide to Console: console.md
   - Logging: logging.md
   - Monitoring: monitoring.md
-
+  - Features: features.md
+  - Quick Start: quickstart.md
+  
 extra_css:
   - stylesheets/extra.css
