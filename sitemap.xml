@@ -1,27 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/</loc>
+         <loc>https://keenpgodocs.keenpg.in/</loc>
          <lastmod>2026-11-26</lastmod>
     </url>
     <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/console/</loc>
+         <loc>https://keenpgodocs.keenpg.in/backups/</loc>
          <lastmod>2026-11-26</lastmod>
     </url>
     <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/features/</loc>
+         <loc>https://keenpgodocs.keenpg.in/console/</loc>
          <lastmod>2026-11-26</lastmod>
     </url>
     <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/logging/</loc>
+         <loc>https://keenpgodocs.keenpg.in/features/</loc>
          <lastmod>2026-11-26</lastmod>
     </url>
     <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/monitoring/</loc>
+         <loc>https://keenpgodocs.keenpg.in/logging/</loc>
          <lastmod>2026-11-26</lastmod>
     </url>
     <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/quickstart/</loc>
+         <loc>https://keenpgodocs.keenpg.in/monitoring/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/quickstart/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/security/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/support/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/troubleshooting/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/Installation/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/Installation/System-Requirements/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/Installation/disconnected/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/Installation/helm/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/Installation/kubernetes/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/Installation/minikube/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/Installation/openshift/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/architecture/backupandrestore/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/architecture/dr/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/architecture/ha/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/architecture/monitoring/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/db/detail/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/db/parameter/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/db/pghba/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/db/user/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://keenpgodocs.keenpg.in/release-notes/</loc>
          <lastmod>2026-11-26</lastmod>
     </url>
 </urlset>

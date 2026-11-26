@@ -1,0 +1,2438 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="How the keenPGO database runs on two sites, DC and DR, and how to do the DR drill step by step.">
+      
+      
+        <meta name="author" content="KeenPGO">
+      
+      
+        <link rel="canonical" href="https://keenpgodocs.keenpg.in/architecture/dr/">
+      
+      
+        <link rel="prev" href="../backupandrestore/">
+      
+      
+        <link rel="next" href="../monitoring/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/favicon.ico">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>DR detailed architecture - keenPGO Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#dc-dr-setup-and-dr-drill" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="keenPGO Documentation" class="md-header__button md-logo" aria-label="keenPGO Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            keenPGO Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DR detailed architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/keenpg/keenPG-docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    keenpg/keenPG-docs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="keenPGO Documentation" class="md-nav__button md-logo" aria-label="keenPGO Documentation" data-md-component="logo">
+      
+  <img src="../../assets/logo.svg" alt="logo">
+
+    </a>
+    keenPGO Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/keenpg/keenPG-docs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    keenpg/keenPG-docs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Features
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ha/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HA architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backupandrestore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup and Restore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DR detailed architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DR detailed architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#who-should-read-this" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who should read this
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-we-need-a-standby-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we need a standby cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-main-cluster-is-active" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which main cluster is active
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dr-drill-switch-from-dc-to-dr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DR drill: switch from DC to DR
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DR drill: switch from DC to DR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-shut-down-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Shut down the application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-check-connections-close-them-then-switch-wal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Check connections, close them, then switch WAL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-shut-down-the-dc-main-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Shut down the DC main cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-check-sync-on-dr-then-shut-down-the-dr-main-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Check sync on DR, then shut down the DR main cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-promote-dr-main-and-start-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Promote DR main and start it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-point-the-apps-to-dr-and-start-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Point the apps to DR and start them
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dr-drill-switch-back-from-dr-to-dc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DR drill: switch back from DR to DC
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DR drill: switch back from DR to DC">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-shut-down-the-application_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Shut down the application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-check-connections-close-them-then-switch-wal_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Check connections, close them, then switch WAL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-shut-down-the-dr-main-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Shut down the DR main cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-check-sync-on-the-dc-standby-cluster-then-shut-it-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Check sync on the DC standby cluster, then shut it down
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-promote-the-dc-standby-cluster-and-start-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Promote the DC standby cluster and start it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-point-the-apps-to-the-dc-standby-cluster-and-start-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Point the apps to the DC standby cluster and start them
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-recreate-the-dc-main-cluster-as-standby" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Recreate the DC main cluster as standby
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-the-drill-can-fail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the drill can fail
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dr-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DR checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring stack
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../Installation/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_5" id="__nav_5_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Installation
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Installation/minikube/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation on Minikube
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Installation/kubernetes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation on Kubernetes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Installation/openshift/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation on OpenShift
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Installation/helm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation via Helm charts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../Installation/disconnected/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation in Disconnected Environment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../console/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guide to Console
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DB Cluster
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DB Cluster
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../db/detail/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detail DB Instance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../db/parameter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Postgres Parameter
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../db/user/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../db/pghba/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pg_hba Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../backups/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Backup and restore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Logging
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#who-should-read-this" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who should read this
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#initial-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-we-need-a-standby-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why we need a standby cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#which-main-cluster-is-active" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which main cluster is active
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dr-drill-switch-from-dc-to-dr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DR drill: switch from DC to DR
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DR drill: switch from DC to DR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-shut-down-the-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Shut down the application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-check-connections-close-them-then-switch-wal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Check connections, close them, then switch WAL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-shut-down-the-dc-main-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Shut down the DC main cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-check-sync-on-dr-then-shut-down-the-dr-main-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Check sync on DR, then shut down the DR main cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-promote-dr-main-and-start-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Promote DR main and start it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-point-the-apps-to-dr-and-start-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Point the apps to DR and start them
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dr-drill-switch-back-from-dr-to-dc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DR drill: switch back from DR to DC
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DR drill: switch back from DR to DC">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-shut-down-the-application_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1: Shut down the application
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-check-connections-close-them-then-switch-wal_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2: Check connections, close them, then switch WAL
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-shut-down-the-dr-main-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3: Shut down the DR main cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-check-sync-on-the-dc-standby-cluster-then-shut-it-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4: Check sync on the DC standby cluster, then shut it down
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-5-promote-the-dc-standby-cluster-and-start-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5: Promote the DC standby cluster and start it
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-6-point-the-apps-to-the-dc-standby-cluster-and-start-them" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 6: Point the apps to the DC standby cluster and start them
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-7-recreate-the-dc-main-cluster-as-standby" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 7: Recreate the DC main cluster as standby
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-the-drill-can-fail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why the drill can fail
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dr-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DR checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/keenpg/keenPG-docs/edit/main/docs/architecture/dr.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="dc-dr-setup-and-dr-drill">DC / DR setup and DR drill<a class="headerlink" href="#dc-dr-setup-and-dr-drill" title="Permanent link">&para;</a></h1>
+<p>This page tells how our keenPGO database runs on two sites, <strong>DC</strong> and <strong>DR</strong>. It also tells how to do the <strong>DR drill</strong>, step by step.</p>
+<p>First we move the database from DC to DR. Then we bring it back from DR to DC with the same method.</p>
+<div class="admonition abstract">
+<p class="admonition-title">What you will learn</p>
+<ul>
+<li>How the DC and DR sites are set up, and why we need a standby cluster.</li>
+<li>Which main cluster is active, and how the <code>standby</code> setting decides it.</li>
+<li>How to move the database from DC to DR, step by step.</li>
+<li>How to bring it back from DR to DC with the same method.</li>
+<li>Why a drill can fail, and what to check before you start.</li>
+</ul>
+</div>
+<h2 id="contents">Contents<a class="headerlink" href="#contents" title="Permanent link">&para;</a></h2>
+<div class="grid cards">
+<ul>
+<li>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 16v-3c0-1.11-.89-2-2-2h-6V8h2V2H9v6h2v3H5c-1.11 0-2 .89-2 2v3H1v6h6v-6H5v-3h6v3H9v6h6v-6h-2v-3h6v3h-2v6h6v-6zM11 4h2v2h-2zM5 20H3v-2h2zm8 0h-2v-2h2zm8 0h-2v-2h2z"/></svg></span> <strong>Understand the setup</strong></p>
+<hr />
+<ul>
+<li><a href="#who-should-read-this">Who should read this</a></li>
+<li><a href="#initial-setup">Initial setup</a></li>
+<li><a href="#why-we-need-a-standby-cluster">Why we need a standby cluster</a></li>
+<li><a href="#which-main-cluster-is-active">Which main cluster is active</a></li>
+</ul>
+</li>
+<li>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m21 9-4-4v3h-7v2h7v3M7 11l-4 4 4 4v-3h7v-2H7z"/></svg></span> <strong>Run the drill</strong></p>
+<hr />
+<ul>
+<li><a href="#dr-drill-switch-from-dc-to-dr">Switch from DC to DR</a></li>
+<li><a href="#dr-drill-switch-back-from-dr-to-dc">Switch back from DR to DC</a></li>
+<li><a href="#quick-reference">Quick reference</a></li>
+</ul>
+</li>
+<li>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2m-7 0a1 1 0 0 1 1 1 1 1 0 0 1-1 1 1 1 0 0 1-1-1 1 1 0 0 1 1-1M7 7h10V5h2v14H5V5h2zm.5 6.5L9 12l2 2 4.5-4.5L17 11l-6 6z"/></svg></span> <strong>Prepare and fix</strong></p>
+<hr />
+<ul>
+<li><a href="#why-the-drill-can-fail">Why the drill can fail</a></li>
+<li><a href="#dr-checklist">DR checklist</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<h2 id="who-should-read-this">Who should read this<a class="headerlink" href="#who-should-read-this" title="Permanent link">&para;</a></h2>
+<div class="grid cards">
+<ul>
+<li>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 19h1a1 1 0 0 1 1 1h7v2h-7a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1H2v-2h7a1 1 0 0 1 1-1h1v-2H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-7zM4 3h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1m5 4h1V5H9zm0 8h1v-2H9zM5 5v2h2V5zm0 8v2h2v-2z"/></svg></span> <strong>Platform engineers</strong></p>
+<hr />
+<p>Who Set up the DC and DR clusters.</p>
+</li>
+<li>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 7c0-2.21 3.58-4 8-4s8 1.79 8 4-3.58 4-8 4-8-1.79-8-4m8.08 11H12c-4.42 0-8-1.79-8-4v3c0 2.21 3.58 4 8 4h.29a7.4 7.4 0 0 1-.29-2c0-.34.03-.67.08-1M20 12.08V9c0 2.21-3.58 4-8 4s-8-1.79-8-4v3c0 2.21 3.58 4 8 4h.69c1.13-2.37 3.53-4 6.31-4 .34 0 .67.03 1 .08m3.8 8.32c.1 0 .1.1 0 .2l-1 1.7c-.1.1-.2.1-.3.1l-1.2-.4c-.3.2-.5.3-.8.5l-.2 1.3c0 .1-.1.2-.2.2h-2c-.1 0-.2-.1-.3-.2l-.2-1.3c-.3-.1-.6-.3-.8-.5l-1.2.5c-.1 0-.2 0-.3-.1l-1-1.7c-.1-.1 0-.2.1-.3l1.1-.8v-1l-1.1-.8c-.1-.1-.1-.2-.1-.3l1-1.7c.1-.1.2-.1.3-.1l1.2.5c.3-.2.5-.3.8-.5l.2-1.3c0-.1.1-.2.3-.2h2c.1 0 .2.1.2.2l.2 1.3c.3.1.6.3.9.5l1.2-.5c.1 0 .3 0 .3.1l1 1.7c.1.1 0 .2-.1.3l-1.1.8v1zM20.5 19c0-.8-.7-1.5-1.5-1.5s-1.5.7-1.5 1.5.7 1.5 1.5 1.5 1.5-.7 1.5-1.5"/></svg></span> <strong>DBAs</strong></p>
+<hr />
+<p>Who Run the DR drill.</p>
+</li>
+<li>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.15 6.59 6.59l2.2-2.2c.28-.28.67-.36 1.02-.25 1.12.37 2.32.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4c0-.56.45-1 1-1h3.5a1 1 0 0 1 1 1c0 1.24.2 2.45.57 3.57.11.35.03.74-.25 1.01zM17 12v-2h2v2zm0-4V2h2v6z"/></svg></span> <strong>On-call engineers</strong></p>
+<hr />
+<p>Who Need the steps during a real problem.</p>
+</li>
+</ul>
+</div>
+<h2 id="initial-setup">Initial setup<a class="headerlink" href="#initial-setup" title="Permanent link">&para;</a></h2>
+<p><img alt="Initial setup" src="../../assets/01-initial-setup.svg" /></p>
+<p><em>Initial setup</em></p>
+<p>The same setup as a diagram of how data flows:</p>
+<pre class="mermaid"><code>flowchart LR
+    DCM["1. DC main&lt;br/&gt;read-write"] --&gt;|"2. WAL"| DCO["3. DC object storage"]
+    DCO --&gt;|"4. recover"| DCS["5. DC standby&lt;br/&gt;read-only"]
+    DCO &lt;--&gt;|"6. replicate both ways"| DRO["7. DR object storage"]
+    DRO --&gt;|"8. recover"| DRM["9. DR main&lt;br/&gt;read-only"]
+    DRO --&gt;|"10. recover"| DRS["11. DR standby&lt;br/&gt;read-only"]
+
+    classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
+    classDef opt fill:#9575cd26,stroke:#9575cd,stroke-width:2px
+    class DCO,DRO step
+    class DCM ok
+    class DCS,DRM,DRS opt</code></pre>
+<ul>
+<li>One <strong>keenPGO operator</strong> is on top and manages everything.</li>
+<li>DC and DR are two different Kubernetes clusters.</li>
+<li>Each site has two database clusters:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Cluster</th>
+<th style="text-align: left;">What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Main cluster</strong></td>
+<td style="text-align: left;">Primary and replica pods. DC main is in namespace <code>demo-dc</code>, DR main is in namespace <code>demo-dr</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Standby cluster</strong></td>
+<td style="text-align: left;">One pod, read only, in its own namespace. It always recovers from the object storage of its own site.</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Each site has its own <strong>object storage</strong>.</li>
+<li>The two object storages replicate both ways (like master - master).</li>
+<li>DC main cluster is the only one that takes writes. It pushes WAL files to DC object storage.</li>
+<li>DC standby cluster recovers from DC object storage.</li>
+<li>The WAL is copied to DR object storage. DR main cluster and DR standby cluster both recover from it.</li>
+<li>DR main cluster has the same number of pods as DC main, but it is read only.</li>
+</ul>
+<h3 id="why-we-need-a-standby-cluster">Why we need a standby cluster<a class="headerlink" href="#why-we-need-a-standby-cluster" title="Permanent link">&para;</a></h3>
+<ul>
+<li>HA inside one site (primary + replicas) only saves us when a pod or a node fails.</li>
+<li>If the full DC goes down (power, network, storage or Kubernetes problem), all pods go down together.</li>
+<li>The standby cluster has a full copy of the data, kept up to date from object storage.</li>
+<li>It is already running and replaying WAL, so we can promote in minutes. Restore from backup can take hours for a big database.</li>
+<li>Data loss is small, because WAL is shipped all the time, not once a day.</li>
+<li>Standby is read only, so nobody can write on it by mistake.</li>
+<li>During the drill, when the DC main cluster is shut down, the DC standby cluster still keeps a live copy of the data on the DC side.</li>
+<li>Before we switch back, we check the data on the DC standby cluster.</li>
+<li>We can run reports and read-only queries on a standby.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Standby cluster is not a backup</p>
+<p>If someone drops a table on the main cluster, it is dropped on all standbys also. For this we still need backups and point-in-time restore.</p>
+</div>
+<h3 id="which-main-cluster-is-active">Which main cluster is active<a class="headerlink" href="#which-main-cluster-is-active" title="Permanent link">&para;</a></h3>
+<p>The <code>standby</code> setting in the main cluster decides which site is active.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">State</th>
+<th style="text-align: left;">DC main <code>standby.enabled</code></th>
+<th style="text-align: left;">DR main <code>standby.enabled</code></th>
+<th style="text-align: left;">Apps write to</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Normal (DC active)</td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;"><code>true</code></td>
+<td style="text-align: left;">DC main</td>
+</tr>
+<tr>
+<td style="text-align: left;">DR active</td>
+<td style="text-align: left;"><code>true</code> (and shut down)</td>
+<td style="text-align: left;"><code>false</code></td>
+<td style="text-align: left;">DR main</td>
+</tr>
+</tbody>
+</table>
+<p>The standby clusters on both sites always have <code>standby.enabled: true</code>.</p>
+<p>When DC is active, the DC main kustomize file has:</p>
+<div class="highlight"><span class="filename">DC main kustomize file</span><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">standby</span><span class="p">:</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
+<p>And the DR main kustomize file has:</p>
+<div class="highlight"><span class="filename">DR main kustomize file</span><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">standby</span><span class="p">:</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nt">repoName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;repo that points at DR object storage&gt;</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Only one main cluster can have <code>standby.enabled: false</code></p>
+<p>If both main clusters are primary at the same time, both take writes and the data becomes different on both sides (split brain). So we always shut down the old main cluster first, and only then promote the other one.</p>
+</div>
+<h2 id="dr-drill-switch-from-dc-to-dr">DR drill: switch from DC to DR<a class="headerlink" href="#dr-drill-switch-from-dc-to-dr" title="Permanent link">&para;</a></h2>
+<div class="admonition danger">
+<p class="admonition-title">Do these steps one by one</p>
+<p>Do not skip any step.</p>
+</div>
+<p>The six steps from DC to DR:</p>
+<pre class="mermaid"><code>flowchart LR
+    A["1. Stop apps"] --&gt; B["2. Close connections,&lt;br/&gt;switch WAL"] --&gt; C["3. Shut down&lt;br/&gt;DC main"] --&gt; D["4. Check sync,&lt;br/&gt;shut down DR main"] --&gt; E["5. Promote and&lt;br/&gt;start DR main"] --&gt; F["6. Apps to DR"]
+
+    classDef step fill:#7986cb26,stroke:#7986cb,stroke-width:2px
+    classDef ok fill:#43a04726,stroke:#43a047,stroke-width:2px
+    class A,B,C,D,E step
+    class F ok</code></pre>
+<h3 id="step-1-shut-down-the-application">Step 1: Shut down the application<a class="headerlink" href="#step-1-shut-down-the-application" title="Permanent link">&para;</a></h3>
+<p>Stop all applications that connect to the DC main cluster. Scale the app deployments to 0, or stop them in the way your team does it.</p>
+<div class="highlight"><span class="filename">Stop the application</span><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>kubectl<span class="w"> </span>scale<span class="w"> </span>deployment<span class="w"> </span>&lt;app-deployment&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;app-namespace&gt;<span class="w"> </span>--replicas<span class="o">=</span><span class="m">0</span>
+</code></pre></div>
+<p>If you use pgBouncer, stop it also, so no new connection comes.</p>
+<h3 id="step-2-check-connections-close-them-then-switch-wal">Step 2: Check connections, close them, then switch WAL<a class="headerlink" href="#step-2-check-connections-close-them-then-switch-wal" title="Permanent link">&para;</a></h3>
+<p>Find the primary pod of the DC main cluster:</p>
+<div class="highlight"><span class="filename">Find the primary pod</span><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;any-db-pod&gt;<span class="w"> </span>-n<span class="w"> </span>demo-dc<span class="w"> </span>--<span class="w"> </span>patronictl<span class="w"> </span>list
+</code></pre></div>
+<p>The pod with role <code>Leader</code> is the primary.</p>
+<p>Connect to the primary:</p>
+<div class="highlight"><span class="filename">Connect to the DC primary</span><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;dc-primary-pod&gt;<span class="w"> </span>-n<span class="w"> </span>demo-dc<span class="w"> </span>--<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>postgres
+</code></pre></div>
+<p>Check who is still connected:</p>
+<div class="highlight"><span class="filename">Check connections</span><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pid</span><span class="p">,</span><span class="w"> </span><span class="n">usename</span><span class="p">,</span><span class="w"> </span><span class="n">datname</span><span class="p">,</span><span class="w"> </span><span class="n">client_addr</span><span class="p">,</span><span class="w"> </span><span class="n">application_name</span><span class="p">,</span><span class="w"> </span><span class="k">state</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_activity</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">backend_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'client backend'</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">pid</span><span class="w"> </span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">pg_backend_pid</span><span class="p">();</span>
+</code></pre></div>
+<p>If any app connection is still there, close it:</p>
+<div class="highlight"><span class="filename">Close connections</span><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_terminate_backend</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_activity</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">backend_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'client backend'</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">pid</span><span class="w"> </span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">pg_backend_pid</span><span class="p">();</span>
+</code></pre></div>
+<p>Add one test row, so we can check later that DR has all the data:</p>
+<div class="highlight"><span class="filename">Add a test row</span><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">IF</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">EXISTS</span><span class="w"> </span><span class="n">dr_drill_check</span><span class="w"> </span><span class="p">(</span><span class="n">checked_at</span><span class="w"> </span><span class="n">timestamptz</span><span class="p">,</span><span class="w"> </span><span class="n">note</span><span class="w"> </span><span class="nb">text</span><span class="p">);</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">dr_drill_check</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="n">now</span><span class="p">(),</span><span class="w"> </span><span class="s1">'before DC shutdown'</span><span class="p">);</span>
+</code></pre></div>
+<p>Now take a checkpoint and switch WAL, so the last WAL file goes to object storage:</p>
+<div class="highlight"><span class="filename">Checkpoint and switch WAL</span><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">CHECKPOINT</span><span class="p">;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_switch_wal</span><span class="p">();</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_current_wal_lsn</span><span class="p">();</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Write down the LSN</p>
+<p>Write down the LSN from the last command. We need it in step 4.</p>
+</div>
+<p>Check that the WAL is archived and there is no failure:</p>
+<div class="highlight"><span class="filename">Check WAL archiving</span><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">last_archived_wal</span><span class="p">,</span><span class="w"> </span><span class="n">last_archived_time</span><span class="p">,</span><span class="w"> </span><span class="n">failed_count</span><span class="p">,</span><span class="w"> </span><span class="n">last_failed_wal</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_archiver</span><span class="p">;</span>
+</code></pre></div>
+<p><code>last_archived_time</code> should be just now.</p>
+<div class="admonition warning">
+<p class="admonition-title">Archiving failures</p>
+<p>If <code>failed_count</code> goes up, stop here and fix archiving first.</p>
+</div>
+<h3 id="step-3-shut-down-the-dc-main-cluster">Step 3: Shut down the DC main cluster<a class="headerlink" href="#step-3-shut-down-the-dc-main-cluster" title="Permanent link">&para;</a></h3>
+<div class="highlight"><span class="filename">Shut down DC main</span><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>kubectl<span class="w"> </span>patch<span class="w"> </span>keenpgcluster/demo-dc-db-pod<span class="w"> </span>-n<span class="w"> </span>demo-dc<span class="w"> </span>--type<span class="w"> </span>merge<span class="w"> </span>--patch<span class="w"> </span><span class="s1">'{"spec":{"shutdown": true}}'</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>keenpgcluster.&lt;api-group&gt;/demo-dc-db-pod patched
+</code></pre></div>
+<p>Check that the database pods are gone:</p>
+<div class="highlight"><span class="filename">Check the pods</span><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>demo-dc
+</code></pre></div>
+<p>Expected output (no database pods; backup or other helper pods can still be there):</p>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>No resources found in demo-dc namespace.
+</code></pre></div>
+<p>Now, for safety, set DC main to standby in the DC main kustomize file. So if somebody starts it by mistake, it comes up read only, not as a second primary.</p>
+<div class="highlight"><span class="filename">DC main kustomize file</span><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="nt">standby</span><span class="p">:</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">    </span><span class="nt">repoName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;repo that points at DC object storage&gt;</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Apply the kustomize</span><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-k<span class="w"> </span>&lt;dc-main-kustomize-path&gt;
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>keenpgcluster.&lt;api-group&gt;/demo-dc-db-pod configured
+</code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Do not touch the DC standby cluster</p>
+<p>It keeps running and recovering from DC object storage.</p>
+</div>
+<h3 id="step-4-check-sync-on-dr-then-shut-down-the-dr-main-cluster">Step 4: Check sync on DR, then shut down the DR main cluster<a class="headerlink" href="#step-4-check-sync-on-dr-then-shut-down-the-dr-main-cluster" title="Permanent link">&para;</a></h3>
+<p>First check that the DR main cluster has all the data from DC.</p>
+<p>Connect to the DR main standby leader:</p>
+<div class="highlight"><span class="filename">Find the standby leader and connect</span><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;any-db-pod&gt;<span class="w"> </span>-n<span class="w"> </span>demo-dr<span class="w"> </span>--<span class="w"> </span>patronictl<span class="w"> </span>list
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;dr-standby-leader-pod&gt;<span class="w"> </span>-n<span class="w"> </span>demo-dr<span class="w"> </span>--<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>postgres
+</code></pre></div>
+<p>Check that it is still a standby:</p>
+<div class="highlight"><span class="filename">Check recovery mode</span><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_is_in_recovery</span><span class="p">();</span>
+</code></pre></div>
+<p>It should say <code>t</code>.</p>
+<p>Check how much WAL is replayed:</p>
+<div class="highlight"><span class="filename">Check WAL replay</span><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_last_wal_replay_lsn</span><span class="p">(),</span><span class="w"> </span><span class="n">pg_last_xact_replay_timestamp</span><span class="p">();</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_wal_lsn_diff</span><span class="p">(</span><span class="s1">'&lt;lsn-from-step-2&gt;'</span><span class="p">,</span><span class="w"> </span><span class="n">pg_last_wal_replay_lsn</span><span class="p">());</span>
+</code></pre></div>
+<p>The second query should give <code>0</code> or a negative number. If it gives a positive number, DR is still behind. Wait and check again.</p>
+<p>Check the test row:</p>
+<div class="highlight"><span class="filename">Check the test row</span><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">dr_drill_check</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">checked_at</span><span class="w"> </span><span class="k">DESC</span><span class="w"> </span><span class="k">LIMIT</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+</code></pre></div>
+<p>You should see the row <code>before DC shutdown</code>. You can run the same checks on the DC standby cluster and the DR standby cluster also.</p>
+<p>When sync is OK, shut down the DR main cluster before promotion:</p>
+<div class="highlight"><span class="filename">Shut down DR main</span><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>kubectl<span class="w"> </span>patch<span class="w"> </span>keenpgcluster/demo-dr-db-pod<span class="w"> </span>-n<span class="w"> </span>demo-dr<span class="w"> </span>--type<span class="w"> </span>merge<span class="w"> </span>--patch<span class="w"> </span><span class="s1">'{"spec":{"shutdown": true}}'</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>keenpgcluster.&lt;api-group&gt;/demo-dr-db-pod patched
+</code></pre></div>
+<p>Now both main clusters are down. Nobody can write. Only the two standby clusters are running.</p>
+<p><img alt="Switch to DR - main clusters shut down" src="../../assets/02-dc-to-dr-main-clusters-shut-down.svg" /></p>
+<p><em>Switch to DR: main clusters shut down</em></p>
+<h3 id="step-5-promote-dr-main-and-start-it">Step 5: Promote DR main and start it<a class="headerlink" href="#step-5-promote-dr-main-and-start-it" title="Permanent link">&para;</a></h3>
+<p>Set standby to false in the DR main kustomize file:</p>
+<div class="highlight"><span class="filename">DR main kustomize file</span><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="w">  </span><span class="nt">standby</span><span class="p">:</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
+<p>Apply the kustomize:</p>
+<div class="highlight"><span class="filename">Apply the kustomize</span><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-k<span class="w"> </span>&lt;dr-main-kustomize-path&gt;
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>keenpgcluster.&lt;api-group&gt;/demo-dr-db-pod configured
+</code></pre></div>
+<p>Start the DR main cluster:</p>
+<div class="highlight"><span class="filename">Start DR main</span><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>kubectl<span class="w"> </span>patch<span class="w"> </span>keenpgcluster/demo-dr-db-pod<span class="w"> </span>-n<span class="w"> </span>demo-dr<span class="w"> </span>--type<span class="w"> </span>merge<span class="w"> </span>--patch<span class="w"> </span><span class="s1">'{"spec":{"shutdown": false}}'</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>keenpgcluster.&lt;api-group&gt;/demo-dr-db-pod patched
+</code></pre></div>
+<p>Watch the pods come up:</p>
+<div class="highlight"><span class="filename">Watch the pods</span><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>demo-dr<span class="w"> </span>--watch
+</code></pre></div>
+<p>Check that DR main is now primary:</p>
+<div class="highlight"><span class="filename">Check the role</span><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;any-db-pod&gt;<span class="w"> </span>-n<span class="w"> </span>demo-dr<span class="w"> </span>--<span class="w"> </span>patronictl<span class="w"> </span>list
+</code></pre></div>
+<p>One pod should have role <code>Leader</code> (not <code>Standby Leader</code>). In psql, <code>SELECT pg_is_in_recovery();</code> should now say <code>f</code>.</p>
+<h3 id="step-6-point-the-apps-to-dr-and-start-them">Step 6: Point the apps to DR and start them<a class="headerlink" href="#step-6-point-the-apps-to-dr-and-start-them" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Change the DNS or connection string to the DR main primary service.</li>
+<li>Start the apps and pgBouncer.</li>
+<li>Do a small write test and check the app is working.</li>
+<li>Check that new WAL and backups go to DR object storage.</li>
+</ul>
+<p>This is how it looks now:</p>
+<p><img alt="DR active" src="../../assets/03-dr-active.svg" /></p>
+<p><em>DR active</em></p>
+<ul>
+<li>DR main cluster is primary and pushes WAL to DR object storage.</li>
+<li>DR standby cluster recovers from DR object storage.</li>
+<li>DC main cluster is shut down.</li>
+<li>On the DC side only the DC standby cluster (1 pod) is running. It recovers DR WAL from DC object storage, which comes by the both-way replication.</li>
+</ul>
+<h2 id="dr-drill-switch-back-from-dr-to-dc">DR drill: switch back from DR to DC<a class="headerlink" href="#dr-drill-switch-back-from-dr-to-dc" title="Permanent link">&para;</a></h2>
+<p>We use the same method, only the sites are opposite.</p>
+<p>The seven steps from DR back to DC:</p>
+<h3 id="step-1-shut-down-the-application_1">Step 1: Shut down the application<a class="headerlink" href="#step-1-shut-down-the-application_1" title="Permanent link">&para;</a></h3>
+<p>Stop all apps and pgBouncer that connect to the DR main cluster.</p>
+<div class="highlight"><span class="filename">Stop the application</span><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>kubectl<span class="w"> </span>scale<span class="w"> </span>deployment<span class="w"> </span>&lt;app-deployment&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;app-namespace&gt;<span class="w"> </span>--replicas<span class="o">=</span><span class="m">0</span>
+</code></pre></div>
+<h3 id="step-2-check-connections-close-them-then-switch-wal_1">Step 2: Check connections, close them, then switch WAL<a class="headerlink" href="#step-2-check-connections-close-them-then-switch-wal_1" title="Permanent link">&para;</a></h3>
+<p>Connect to the DR main primary:</p>
+<div class="highlight"><span class="filename">Connect to the DR primary</span><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;dr-primary-pod&gt;<span class="w"> </span>-n<span class="w"> </span>demo-dr<span class="w"> </span>--<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>postgres
+</code></pre></div>
+<p>Close any open app connection (same queries as before):</p>
+<div class="highlight"><span class="filename">Close connections</span><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_terminate_backend</span><span class="p">(</span><span class="n">pid</span><span class="p">)</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_activity</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="k">WHERE</span><span class="w"> </span><span class="n">backend_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'client backend'</span>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">pid</span><span class="w"> </span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">pg_backend_pid</span><span class="p">();</span>
+</code></pre></div>
+<p>Add the test row, switch WAL and note the LSN:</p>
+<div class="highlight"><span class="filename">Test row, switch WAL, note the LSN</span><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="n">dr_drill_check</span><span class="w"> </span><span class="k">VALUES</span><span class="w"> </span><span class="p">(</span><span class="n">now</span><span class="p">(),</span><span class="w"> </span><span class="s1">'before DR shutdown'</span><span class="p">);</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a><span class="k">CHECKPOINT</span><span class="p">;</span>
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_switch_wal</span><span class="p">();</span>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_current_wal_lsn</span><span class="p">();</span>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">last_archived_wal</span><span class="p">,</span><span class="w"> </span><span class="n">last_archived_time</span><span class="p">,</span><span class="w"> </span><span class="n">failed_count</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">pg_stat_archiver</span><span class="p">;</span>
+</code></pre></div>
+<h3 id="step-3-shut-down-the-dr-main-cluster">Step 3: Shut down the DR main cluster<a class="headerlink" href="#step-3-shut-down-the-dr-main-cluster" title="Permanent link">&para;</a></h3>
+<div class="highlight"><span class="filename">Shut down DR main</span><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>kubectl<span class="w"> </span>patch<span class="w"> </span>keenpgcluster/demo-dr-db-pod<span class="w"> </span>-n<span class="w"> </span>demo-dr<span class="w"> </span>--type<span class="w"> </span>merge<span class="w"> </span>--patch<span class="w"> </span><span class="s1">'{"spec":{"shutdown": true}}'</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>keenpgcluster.&lt;api-group&gt;/demo-dr-db-pod patched
+</code></pre></div>
+<p>For safety, set DR main back to standby in the DR main kustomize file and apply it:</p>
+<div class="highlight"><span class="filename">DR main kustomize file</span><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="w">  </span><span class="nt">standby</span><span class="p">:</span>
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="w">    </span><span class="nt">repoName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;repo that points at DR object storage&gt;</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Apply the kustomize</span><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-k<span class="w"> </span>&lt;dr-main-kustomize-path&gt;
+</code></pre></div>
+<h3 id="step-4-check-sync-on-the-dc-standby-cluster-then-shut-it-down">Step 4: Check sync on the DC standby cluster, then shut it down<a class="headerlink" href="#step-4-check-sync-on-the-dc-standby-cluster-then-shut-it-down" title="Permanent link">&para;</a></h3>
+<div class="admonition note">
+<p class="admonition-title">Do not start the DC main cluster</p>
+<p>It stays shut down. We come back on the DC standby cluster, because it was running the whole time and has the latest data.</p>
+</div>
+<p><img alt="Switch back to DC - DR main shut down" src="../../assets/04-dr-to-dc-dr-main-shut-down.svg" /></p>
+<p><em>Switch back to DC: DR main shut down</em></p>
+<p>Connect to the DC standby cluster:</p>
+<div class="highlight"><span class="filename">Connect to the DC standby</span><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;dc-standby-pod&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;dc-standby-namespace&gt;<span class="w"> </span>--<span class="w"> </span>psql<span class="w"> </span>-U<span class="w"> </span>postgres
+</code></pre></div>
+<p>Check the data:</p>
+<div class="highlight"><span class="filename">Check the data</span><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_is_in_recovery</span><span class="p">();</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="k">SELECT</span><span class="w"> </span><span class="n">pg_wal_lsn_diff</span><span class="p">(</span><span class="s1">'&lt;lsn-from-step-2&gt;'</span><span class="p">,</span><span class="w"> </span><span class="n">pg_last_wal_replay_lsn</span><span class="p">());</span>
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="k">SELECT</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">FROM</span><span class="w"> </span><span class="n">dr_drill_check</span><span class="w"> </span><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">checked_at</span><span class="w"> </span><span class="k">DESC</span><span class="w"> </span><span class="k">LIMIT</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Check</th>
+<th style="text-align: left;">Expected result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>pg_is_in_recovery()</code></td>
+<td style="text-align: left;"><code>t</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">LSN diff</td>
+<td style="text-align: left;"><code>0</code> or negative</td>
+</tr>
+<tr>
+<td style="text-align: left;">Test row</td>
+<td style="text-align: left;"><code>before DR shutdown</code></td>
+</tr>
+</tbody>
+</table>
+<p>Also check the logs for any WAL or timeline error:</p>
+<div class="highlight"><span class="filename">Check the logs</span><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a>kubectl<span class="w"> </span>logs<span class="w"> </span>&lt;dc-standby-pod&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;dc-standby-namespace&gt;<span class="w"> </span>--tail<span class="o">=</span><span class="m">100</span>
+</code></pre></div>
+<p>When everything is OK, shut down the DC standby cluster before promotion:</p>
+<div class="highlight"><span class="filename">Shut down the DC standby</span><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a>kubectl<span class="w"> </span>patch<span class="w"> </span>keenpgcluster/&lt;dc-standby-cluster&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;dc-standby-namespace&gt;<span class="w"> </span>--type<span class="w"> </span>merge<span class="w"> </span>--patch<span class="w"> </span><span class="s1">'{"spec":{"shutdown": true}}'</span>
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a>keenpgcluster.&lt;api-group&gt;/&lt;dc-standby-cluster&gt; patched
+</code></pre></div>
+<h3 id="step-5-promote-the-dc-standby-cluster-and-start-it">Step 5: Promote the DC standby cluster and start it<a class="headerlink" href="#step-5-promote-the-dc-standby-cluster-and-start-it" title="Permanent link">&para;</a></h3>
+<p>In the DC standby kustomize file set standby to false:</p>
+<div class="highlight"><span class="filename">DC standby kustomize file</span><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="nt">spec</span><span class="p">:</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a><span class="w">  </span><span class="nt">standby</span><span class="p">:</span>
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a><span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
+<p>Apply the kustomize:</p>
+<div class="highlight"><span class="filename">Apply the kustomize</span><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-k<span class="w"> </span>&lt;dc-standby-kustomize-path&gt;
+</code></pre></div>
+<div class="highlight"><span class="filename">Expected output</span><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a>keenpgcluster.&lt;api-group&gt;/&lt;dc-standby-cluster&gt; configured
+</code></pre></div>
+<p>Start it:</p>
+<div class="highlight"><span class="filename">Start the DC standby</span><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>kubectl<span class="w"> </span>patch<span class="w"> </span>keenpgcluster/&lt;dc-standby-cluster&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;dc-standby-namespace&gt;<span class="w"> </span>--type<span class="w"> </span>merge<span class="w"> </span>--patch<span class="w"> </span><span class="s1">'{"spec":{"shutdown": false}}'</span>
+</code></pre></div>
+<p>Check that it is now the master:</p>
+<div class="highlight"><span class="filename">Check the role</span><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>&lt;dc-standby-pod&gt;<span class="w"> </span>-n<span class="w"> </span>&lt;dc-standby-namespace&gt;<span class="w"> </span>--<span class="w"> </span>patronictl<span class="w"> </span>list
+</code></pre></div>
+<p>The pod should have role <code>Leader</code> (not <code>Standby Leader</code>). In psql, <code>SELECT pg_is_in_recovery();</code> should now say <code>f</code>.</p>
+<h3 id="step-6-point-the-apps-to-the-dc-standby-cluster-and-start-them">Step 6: Point the apps to the DC standby cluster and start them<a class="headerlink" href="#step-6-point-the-apps-to-the-dc-standby-cluster-and-start-them" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Change the DNS or connection string to the primary service of the DC standby cluster.</li>
+<li>Start the apps and pgBouncer, and do a small write test.</li>
+<li>Check that new WAL goes to DC object storage.</li>
+<li>Start DR main again. It comes up as standby, because we set <code>standby: true</code> in step 3:</li>
+</ul>
+<div class="highlight"><span class="filename">Start DR main</span><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>kubectl<span class="w"> </span>patch<span class="w"> </span>keenpgcluster/demo-dr-db-pod<span class="w"> </span>-n<span class="w"> </span>demo-dr<span class="w"> </span>--type<span class="w"> </span>merge<span class="w"> </span>--patch<span class="w"> </span><span class="s1">'{"spec":{"shutdown": false}}'</span>
+</code></pre></div>
+<p>This is how it looks now:</p>
+<p><img alt="DC standby active" src="../../assets/05-dc-standby-active.svg" /></p>
+<p><em>DC standby active</em></p>
+<ul>
+<li>DC standby cluster is now the master. The application connects to it.</li>
+<li>It pushes WAL to DC object storage.</li>
+<li>DR main and DR standby recover from DR object storage.</li>
+<li>DC main cluster is still shut down.</li>
+</ul>
+<h3 id="step-7-recreate-the-dc-main-cluster-as-standby">Step 7: Recreate the DC main cluster as standby<a class="headerlink" href="#step-7-recreate-the-dc-main-cluster-as-standby" title="Permanent link">&para;</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Do not start the old DC main cluster as it is</p>
+<p>The DC standby cluster is now the current master. The old DC main cluster is shut down and its data is old (it is on the old timeline). Do not start it as it is, and never set <code>standby: false</code> on it.</p>
+</div>
+<p>Recreate it as a standby of the current master:</p>
+<ol>
+<li>Keep <code>shutdown: true</code> on <code>demo-dc-db-pod</code>.</li>
+<li>Delete the old DC main cluster and its data volumes (PVCs).</li>
+<li>In the DC main kustomize file set <code>standby.enabled: true</code> and <code>repoName</code> pointing at DC object storage.</li>
+<li>Apply the kustomize and set <code>shutdown: false</code>.</li>
+<li>It restores from the latest backup in DC object storage and then keeps recovering WAL.</li>
+<li>Check <code>pg_is_in_recovery()</code> is <code>t</code> and the lag is small.</li>
+</ol>
+<div class="admonition success">
+<p class="admonition-title">New roles for the next drill</p>
+<p>Now the DC main cluster is the standby, and the DC standby cluster is the master. For the next drill, use these new roles.</p>
+</div>
+<h2 id="quick-reference">Quick reference<a class="headerlink" href="#quick-reference" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Step</th>
+<th style="text-align: left;">DC → DR</th>
+<th style="text-align: left;">DR → DC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">Stop apps on DC</td>
+<td style="text-align: left;">Stop apps on DR</td>
+</tr>
+<tr>
+<td style="text-align: left;">2</td>
+<td style="text-align: left;">Close connections, switch WAL on DC main</td>
+<td style="text-align: left;">Close connections, switch WAL on DR main</td>
+</tr>
+<tr>
+<td style="text-align: left;">3</td>
+<td style="text-align: left;">Shut down DC main, set <code>standby: true</code></td>
+<td style="text-align: left;">Shut down DR main, set <code>standby: true</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">4</td>
+<td style="text-align: left;">Check sync on DR main, shut down DR main</td>
+<td style="text-align: left;">Check sync on DC standby, shut down DC standby</td>
+</tr>
+<tr>
+<td style="text-align: left;">5</td>
+<td style="text-align: left;">DR main <code>standby: false</code>, apply kustomize, start</td>
+<td style="text-align: left;">DC standby <code>standby: false</code>, apply kustomize, start</td>
+</tr>
+<tr>
+<td style="text-align: left;">6</td>
+<td style="text-align: left;">Apps → DR main</td>
+<td style="text-align: left;">Apps → DC standby, start DR main as standby</td>
+</tr>
+<tr>
+<td style="text-align: left;">7</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Recreate DC main as standby</td>
+</tr>
+</tbody>
+</table>
+<h2 id="why-the-drill-can-fail">Why the drill can fail<a class="headerlink" href="#why-the-drill-can-fail" title="Permanent link">&para;</a></h2>
+<p>These are the common reasons. Check them before the drill.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Problem</th>
+<th style="text-align: left;">What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Apps are not fully stopped</strong></td>
+<td style="text-align: left;">Some writes come after the WAL switch, and the other side misses them.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>WAL archiving is failing</strong></td>
+<td style="text-align: left;">Wrong bucket keys or a full bucket. <code>failed_count</code> in <code>pg_stat_archiver</code> goes up.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Object storage replication is slow or broken</strong></td>
+<td style="text-align: left;">The last WAL file did not reach the other site yet.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Standby is not replaying</strong></td>
+<td style="text-align: left;">Wrong <code>repoName</code>, a missing WAL file, or the standby was already behind before the drill.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>We forgot <code>standby: true</code> on the old main cluster</strong></td>
+<td style="text-align: left;">When it starts again, both sides are primary (split brain).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Kustomize file not updated</strong></td>
+<td style="text-align: left;">Wrong path, or the change is not saved in git, so a sync tool puts the old value back.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Operator is not working</strong></td>
+<td style="text-align: left;">The patch is accepted, but nothing happens to the pods.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Pods stay Pending on the other site</strong></td>
+<td style="text-align: left;">Not enough nodes, CPU or memory, PVC or storage class problem, or anti-affinity cannot be met.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Timeline problem when coming back</strong></td>
+<td style="text-align: left;">After DR main is promoted it starts a new timeline. If the DC standby cluster cannot follow it, it must be rebuilt from a DR backup.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Old DC main started by mistake</strong></td>
+<td style="text-align: left;">Its data is old. It must be recreated as standby, never started as primary.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Users or secrets are different on the two sites</strong></td>
+<td style="text-align: left;">Apps cannot log in after the switch.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Apps still point to the old site</strong></td>
+<td style="text-align: left;">DNS TTL is long, or pgBouncer or the app has the old address cached.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Network or firewall issue</strong></td>
+<td style="text-align: left;">A site cannot reach its object storage.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Long running sessions</strong></td>
+<td style="text-align: left;">They keep coming back, so the shutdown takes too long.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="dr-checklist">DR checklist<a class="headerlink" href="#dr-checklist" title="Permanent link">&para;</a></h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> keenPGO operator manages all four clusters (DC main, DC standby, DR main, DR standby)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> DC main has <code>standby.enabled: false</code>, all others have <code>standby.enabled: true</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> DR main has the same number of pods as DC main, and enough nodes</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Both object storages are working and replicate both ways</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> WAL archiving has no failures and standby lag is small</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> WAL retention is long enough to cover the full drill time</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Kustomize paths for both main clusters are known and in git</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> App connection strings can be changed quickly</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Drill is done in a test environment first, then in production</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <a href="../../backups/">Backups</a> and <a href="../../monitoring/">monitoring</a> cover both sites</li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../backupandrestore/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Backup and Restore">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Backup and Restore
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../monitoring/" class="md-footer__link md-footer__link--next" aria-label="Next: Monitoring stack">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Monitoring stack
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      © 2026 keenPG.
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.indexes", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.action.edit"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
