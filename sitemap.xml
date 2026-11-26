@@ -2,30 +2,26 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://AdityaPanchall.github.io/keenpg-documentation/</loc>
-         <lastmod>2026-11-25</lastmod>
-    </url>
-    <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/console-before-fix/</loc>
-         <lastmod>2026-11-25</lastmod>
-    </url>
-    <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/console-updated-21/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://AdityaPanchall.github.io/keenpg-documentation/console/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/keenpg_console_documentation%20%282%29/</loc>
-         <lastmod>2026-11-25</lastmod>
-    </url>
-    <url>
-         <loc>https://AdityaPanchall.github.io/keenpg-documentation/keenpg_console_documentation/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <loc>https://AdityaPanchall.github.io/keenpg-documentation/features/</loc>
+         <lastmod>2026-11-26</lastmod>
     </url>
     <url>
          <loc>https://AdityaPanchall.github.io/keenpg-documentation/logging/</loc>
-         <lastmod>2026-11-25</lastmod>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://AdityaPanchall.github.io/keenpg-documentation/monitoring/</loc>
+         <lastmod>2026-11-26</lastmod>
+    </url>
+    <url>
+         <loc>https://AdityaPanchall.github.io/keenpg-documentation/quickstart/</loc>
+         <lastmod>2026-11-26</lastmod>
     </url>
 </urlset>
