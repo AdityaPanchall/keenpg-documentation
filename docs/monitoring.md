@@ -1,5 +1,5 @@
 ---
-title: OpenTelemetry Metrics
+title: Monitoring
 ---
 
 # OpenTelemetry Metrics
