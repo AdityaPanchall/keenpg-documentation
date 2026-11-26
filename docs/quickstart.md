@@ -17,7 +17,7 @@ This guide takes you from an empty Kubernetes cluster to a running PostgreSQL da
 
 !!! tip "Just testing?"
 
-    No cluster yet? Start a local one with [Minikube](installation/minikube.md) and come back here.
+    No cluster yet? Start a local one with [Minikube](Installation/minikube.md) and come back here.
 
 ## Contents
 
