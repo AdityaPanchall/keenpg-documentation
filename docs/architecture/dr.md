@@ -640,4 +640,4 @@ These are the common reasons. Check them before the drill.
 - [ ] Kustomize paths for both main clusters are known and in git
 - [ ] App connection strings can be changed quickly
 - [ ] Drill is done in a test environment first, then in production
-- [ ] [Backups](../backups.md) and [monitoring](../monitoring.md) cover both sites
+- [ ] [Backups](../backups.md) and [monitoring](./monitoring.md) cover both sites

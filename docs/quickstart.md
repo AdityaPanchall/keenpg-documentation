@@ -80,7 +80,7 @@ flowchart LR
 | **Kubernetes** | A running cluster, above version `1.31.x`. |
 | **kubectl** | [`kubectl`](https://kubernetes.io/docs/tasks/tools/) configured to reach the cluster. |
 | **Permissions** | You must be allowed to create namespaces and the custom resource definitions (CRDs) keenPGO needs. |
-| **psql** *(optional)* | The `psql` client, if you want to connect from your own machine to the new database. |
+| **psql** *(optional)* | The psql client, if you want to connect from your own machine to perform operations on created keenPGO database instance. |
 
 Check that `kubectl` can reach your cluster:
 

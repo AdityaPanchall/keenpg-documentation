@@ -1,5 +1,5 @@
 ---
-title: High availability and architecture
+title: HA architecture
 description: How a keenPGO cluster is put together, how it survives failures, and how to configure it for the level of protection you need.
 ---
 
@@ -306,4 +306,4 @@ If something doesn't behave as expected, see [troubleshooting](../troubleshootin
 - [ ] Applications and connection pools retry after connection loss
 - [ ] Failover tested at least once
 - [ ] [Backups](../backups.md) configured and a restore tested
-- [ ] [Monitoring](../monitoring.md) alerts on replica lag and failovers
+- [ ] [Monitoring](./monitoring.md) alerts on replica lag and failovers

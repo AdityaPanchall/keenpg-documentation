@@ -79,7 +79,7 @@ nav:
   - Quickstart: quickstart.md
   - Features: features.md
   - Architecture:
-      - "HA architecture": architecture/ha.md
+      - "HA architecture ": architecture/ha.md
       - "Backup and Restore": architecture/backupandrestore.md
       - "DR detailed architecture": architecture/dr.md
       - "Monitoring stack": architecture/monitoring.md

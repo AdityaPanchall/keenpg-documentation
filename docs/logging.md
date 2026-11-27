@@ -1,3 +1,8 @@
+---
+title: Logging with Loki
+description: Collect the logs of your KeenPG clusters with Loki and see them in Grafana.
+---
+
 # Logging with Loki
 
 This section shows how to collect the logs of your KeenPG clusters and see them in Grafana.
@@ -6,13 +11,49 @@ KeenPG collects the logs of **PostgreSQL**, **Patroni**, **pgBackRest** and **pg
 The OpenTelemetry collector in each pod sends them to **Loki**. Loki stores them, and
 **Grafana** shows them.
 
-One Loki stores the logs of **all clusters in all namespaces**. You install it only once.
+!!! note
+
+    One Loki stores the logs of **all clusters in all namespaces**. You install it only once.
 
 ![KeenPG logging architecture](https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/logging-architecture.png)
+
+*KeenPG logging architecture*
+
+## Contents
+
+<div class="grid cards" markdown>
+
+-   :material-rocket-launch:{ .lg .middle } __Get started__
+
+    ---
+
+    - [How it works](#how-it-works)
+    - [Before you start](#before-you-start)
+
+-   :material-cog-outline:{ .lg .middle } __Set up__
+
+    ---
+
+    - [Step 1: Enable the feature gates](#step-1-enable-the-feature-gates)
+    - [Step 2: Install Loki](#step-2-install-loki)
+    - [Step 3: Send the logs of a cluster to Loki](#step-3-send-the-logs-of-a-cluster-to-loki)
+    - [Step 4 (optional): Choose what PostgreSQL logs](#step-4-optional-choose-what-postgresql-logs)
+
+-   :material-monitor-dashboard:{ .lg .middle } __Use and manage__
+
+    ---
+
+    - [Step 5: See the logs in Grafana](#step-5-see-the-logs-in-grafana)
+    - [Check that it works](#check-that-it-works)
+    - [Change how long logs are kept](#change-how-long-logs-are-kept)
+    - [Remove logging](#remove-logging)
+
+</div>
 
 ## How it works
 
 ![How logs flow](https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/logging-flow.png)
+
 
 1. PostgreSQL, Patroni, pgBackRest and pgBouncer write their log files in the pod.
 2. The OpenTelemetry collector (a sidecar in the same pod) reads these files.
@@ -26,7 +67,7 @@ Loki keeps the logs for **7 days**. Old logs are deleted automatically.
 - KeenPG operator is installed.
 - Monitoring (Prometheus and Grafana) is installed. Grafana comes from there:
 
-```
+```console title="Install monitoring"
 # kubectl apply -k config/monitoring
 ```
 
@@ -37,26 +78,26 @@ keenpgo installation.
 
 Check them:
 
-```
+```console title="Check the feature gates"
 # kubectl -n keenpg-operator get deploy keenpgo -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="KEENPG_FEATURE_GATES")].value}'
 OpenTelemetryMetrics=true,OpenTelemetryLogs=true
 ```
 
 If they are not set, enable them:
 
-```
+```console title="Enable the feature gates"
 # kubectl -n keenpg-operator set env deploy/keenpgo KEENPG_FEATURE_GATES="OpenTelemetryMetrics=true,OpenTelemetryLogs=true"
 ```
 
 If you install keenpgo with Helm, set it in `values.yaml` instead, so an upgrade does not remove it:
 
-```
+```yaml title="values.yaml"
 featureGates: "OpenTelemetryMetrics=true,OpenTelemetryLogs=true"
 ```
 
 ## Step 2: Install Loki
 
-```
+```console title="Install Loki"
 # kubectl apply -k config/logging
 ```
 
@@ -65,13 +106,13 @@ Loki will be deployed in the `keenpg-operator` namespace.
 
 Restart Grafana, so it loads the new data source:
 
-```
+```console title="Restart Grafana"
 # kubectl -n keenpg-operator rollout restart deploy/keenpg-grafana
 ```
 
 Check the pods:
 
-```
+```console title="Check the pods"
 # kubectl get pods -n keenpg-operator
 NAME                                   READY   STATUS    RESTARTS   AGE
 keenpg-alertmanager-8468ff65f6-lvp4l   1/1     Running   0          10m
@@ -81,7 +122,7 @@ keenpg-prometheus-5c5c69549c-29j76     1/1     Running   0          10m
 keenpgo-7b8d8dcc4f-tjnht               1/1     Running   0          15m
 ```
 
-```
+```console title="Check the Loki service"
 # kubectl get svc keenpg-loki -n keenpg-operator
 NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
 keenpg-loki   ClusterIP   10.104.82.51    <none>        3100/TCP   2m
@@ -91,7 +132,7 @@ keenpg-loki   ClusterIP   10.104.82.51    <none>        3100/TCP   2m
 
 Add an `instrumentation` block to your KeenPGCluster spec:
 
-```
+```yaml title="KeenPGCluster spec"
 spec:
   instrumentation:
     config:
@@ -108,7 +149,7 @@ spec:
 
 Or patch a running cluster:
 
-```
+```console title="Patch a running cluster"
 # kubectl -n test patch keenpgcluster keenpg-ha --type merge -p '{"spec":{"instrumentation":{
     "config":{"exporters":{"otlphttp/loki":{"endpoint":"http://keenpg-loki.keenpg-operator.svc:3100/otlp"}}},
     "logs":{"exporters":["otlphttp/loki"],"retentionPeriod":"1d"}}}}'
@@ -116,7 +157,7 @@ Or patch a running cluster:
 
 You will see a `collector` sidecar in the PostgreSQL, pgBouncer and repo host pods:
 
-```
+```console title="Check the collector sidecar"
 # kubectl get pods -n test
 NAME                                  READY   STATUS    RESTARTS   AGE
 keenpg-ha-pgbouncer-658994757d-8jsww   3/3     Running   0          5m
@@ -130,7 +171,7 @@ keenpg-ha-repo-host-0                  3/3     Running   0          5m
 By default PostgreSQL logs errors, warnings and important events. To also log slow queries and
 other useful events, add these to your spec:
 
-```
+```yaml title="PostgreSQL log settings"
 spec:
   config:
     parameters:
@@ -144,14 +185,16 @@ spec:
 
 These settings do not restart PostgreSQL.
 
-Do not use `log_statement: all` or `log_min_duration_statement: "0"` in production. They log
-every query and create a lot of logs.
+!!! warning
+
+    Do not use `log_statement: all` or `log_min_duration_statement: "0"` in production. They log
+    every query and create a lot of logs.
 
 ## Step 5: See the logs in Grafana
 
 Open Grafana:
 
-```
+```console title="Open Grafana"
 # kubectl -n keenpg-operator port-forward svc/keenpg-grafana 3000:3000
 ```
 
@@ -161,14 +204,18 @@ Go to **Dashboards**. You will see the **PostgreSQL Logs** dashboard with the `l
 
 ![Dashboards list](https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/grafana-dashboards-list.png)
 
+*Dashboards list*
+
 Open **PostgreSQL Logs**:
 
 ![PostgreSQL Logs dashboard](https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/grafana-logs-dashboard.png)
 
+*PostgreSQL Logs dashboard*
+
 The dashboard has:
 
 | Part | What it shows |
-|---|---|
+| :---- | :---- |
 | Counters | Fatal, errors, warnings, slow queries, backup problems and all log lines |
 | Log lines by level | How many lines each level wrote over time |
 | Problems | Fatal, errors and warnings from every component |
@@ -185,14 +232,18 @@ Click a log line to see all its details: namespace, pod, container, level and th
 
 ![Details of a log line](https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/grafana-log-details.png)
 
+*Details of a log line*
+
 Scroll down to see the logs of each component in its own section:
 
 ![Patroni, pgBackRest and pgBouncer logs](https://raw.githubusercontent.com/keenpg/keenPG-docs/main/docs/assets/grafana-logs-by-source.png)
 
+*Patroni, pgBackRest and pgBouncer logs*
+
 You can also search the logs yourself in **Explore**. Choose the **LOKI** data source, switch to
 **Code** and run a query:
 
-```
+```text title="Example queries"
 {k8s_namespace_name="test"}                                   # all logs of a namespace
 {k8s_namespace_name="test"} |= "ERROR"                        # only lines with ERROR
 {k8s_pod_name=~"keenpg-ha-pgha1-.*"} |= "duration:"            # slow queries of a cluster
@@ -203,7 +254,7 @@ You can also search the logs yourself in **Explore**. Choose the **LOKI** data s
 
 Create an error in PostgreSQL:
 
-```
+```console title="Create a test error"
 # kubectl -n test exec keenpg-ha-pgha1-64kd-0 -c database -- psql -c "SELECT 1/0"
 ERROR:  division by zero
 ```
@@ -214,17 +265,17 @@ If you see no logs:
 
 - Check the collector of the pod:
 
-  ```
-  # kubectl -n test logs keenpg-ha-pgha1-64kd-0 -c collector --tail=20
-  ```
+    ```console title="Check the collector"
+    # kubectl -n test logs keenpg-ha-pgha1-64kd-0 -c collector --tail=20
+    ```
 
 - Check that Loki receives logs. The output must list your namespaces:
 
-  ```
-  # kubectl -n keenpg-operator port-forward svc/keenpg-loki 3100:3100 &
-  # curl -s localhost:3100/loki/api/v1/label/k8s_namespace_name/values
-  {"status":"success","data":["test"]}
-  ```
+    ```console title="Check that Loki receives logs"
+    # kubectl -n keenpg-operator port-forward svc/keenpg-loki 3100:3100 &
+    # curl -s localhost:3100/loki/api/v1/label/k8s_namespace_name/values
+    {"status":"success","data":["test"]}
+    ```
 
 - Make sure the time range in Grafana is **Last 1 hour** or more.
 
@@ -232,14 +283,14 @@ If you see no logs:
 
 Loki keeps logs for 7 days (`168h`). To change it, edit `config/logging/loki/config/loki.yaml`:
 
-```
+```yaml title="config/logging/loki/config/loki.yaml"
 limits_config:
   retention_period: 336h   # 14 days
 ```
 
 Then apply it and restart Loki:
 
-```
+```console title="Apply and restart Loki"
 # kubectl apply -k config/logging
 # kubectl -n keenpg-operator rollout restart deploy/keenpg-loki
 ```
@@ -249,9 +300,11 @@ Loki stores the logs on a 10Gi volume. For more days or more clusters, increase 
 
 ## Remove logging
 
-```
+```console title="Remove logging"
 # kubectl delete -k config/logging
 # kubectl -n keenpg-operator rollout restart deploy/keenpg-grafana
 ```
 
-This also deletes the stored logs. Remove the `instrumentation.logs` block from your clusters too.
+!!! warning
+
+    This also deletes the stored logs. Remove the `instrumentation.logs` block from your clusters too.
